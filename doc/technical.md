@@ -26,6 +26,7 @@ src/
     hooks/useGuitarWall.ts           # 全档案展开、作者资料、公共墙刷新
     audio/ToneEngine.ts              # Web Audio 播弦与试听
     components/BuildRun.tsx          # 玩家多页面状态机、即时试装与 16 步音序器
+    components/AssemblyGuitarPreview.tsx # 工程轮廓、实体模块显影与部位镜头状态
     components/PublicWall.tsx        # 自己 + 社区的乐器墙
     components/ModularGuitarPreview.tsx
     components/modules/              # 可换琴体、琴颈与硬件 SVG
@@ -37,6 +38,8 @@ scripts/
 
 - `BuildRun` 状态机包含 `start → sealed → choose → complete → riff / collection / wall`。玩家入口不再包裹工作区导航或技术状态栏；制琴中只常驻五个无文字进度点。每局随机平台，依次完成琴体、琴颈、拾音器、琴桥、饰面五步；候选固定 2–3 张且不可刷新。
 - `choose` 阶段通过 `previewConfig = applyOffer(config, stage, selectedOffer)` 生成临时装配结果；点候选会立即重绘 SVG，但只有“就选这个”才写入正式 `config`，因此试装可逆且不会污染存档。
+- `AssemblyGuitarPreview` 同位叠加两份生产 SVG：下层统一转为冷灰工程描线，上层按 `body / neck / pickups / bridge / finish` 的确认进度逐组显影。六个模块根节点使用 `tf-module-body / neck / hardware` 语义类，硬件内部继续用 `data-guitar-part` 区分拾音器、琴桥、尾件与控制件。
+- 候选页依据当前 `BuildStage` 给同一 SVG 容器附加 `is-focus-*` 类，使用 GPU `transform` 在 620 ms 内推近对应部位；sealed 状态移除聚焦类并退回整琴。`prefers-reduced-motion` 会取消过渡但保留最终构图与状态。
 - `buildRun.ts` 直接读取两个模块平台的兼容矩阵。更换琴体时会修正失配的拾音器与琴桥，最终保存 Guitar ID、五步等级和稀有分。
 - 等级概率为 Workshop 68%、Select 27%、Archive 5%。机械测试连续模拟 2500 局，检查候选数、唯一 ID、最终兼容性及概率区间。
 - `useFoundrySave` 按 `useGameSave` 规范只从 `savedData` 初始化一次，之后所有读取、收藏和发布都通过同一 `mirror`；每次持久化包含完整 `collection` 与 `published`，防止第二次发布覆盖第一次。

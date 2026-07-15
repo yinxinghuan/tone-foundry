@@ -16,7 +16,7 @@ function Pickup({ prefix, kind, y, angle = 0 }: { prefix: string; kind: 'single'
 
 export function ModularBoltOnHardwareSvg({ prefix, body, pickups, bridge }: Props) {
   return (
-    <g data-guitar-module={`bolt-on-hardware-${pickups}-${bridge}`}>
+    <g className="tf-module-hardware" data-guitar-module={`bolt-on-hardware-${pickups}-${bridge}`}>
       <g data-guitar-part={`pickguard-${body}`}>
         {body === 'slab' && <path d="M273 666 L273 735 C241 738 213 758 201 790 C193 816 196 845 211 857 L255 857 L255 844 L347 844 L347 857 L377 857 C383 820 394 782 410 748 C424 718 435 691 425 673 C414 663 397 670 385 684 C375 699 375 716 385 730 C371 741 354 742 338 735 L326 720 L326 666 Z" fill={`url(#${prefix}-guard)`} stroke="#3e3c37" strokeWidth="1" vectorEffect="non-scaling-stroke" />}
         {body === 'contour' && <path d="M270 666 C231 674 199 699 187 738 C176 775 188 812 213 836 L238 872 L236 940 C257 956 333 958 367 940 L365 852 C391 828 407 791 409 753 C410 720 394 692 369 679 C351 670 335 674 325 691 L325 666 Z" fill={`url(#${prefix}-guard)`} stroke="#66635b" strokeWidth="1" vectorEffect="non-scaling-stroke" />}

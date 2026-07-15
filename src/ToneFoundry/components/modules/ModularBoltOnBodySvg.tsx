@@ -3,7 +3,7 @@ import { MODULAR_BODY_PATHS, type ModularBodyId } from '../../guitar-system/modu
 export function ModularBoltOnBodySvg({ prefix, body }: { prefix: string; body: ModularBodyId }) {
   const path = MODULAR_BODY_PATHS[body]
   return (
-    <g data-guitar-module={`bolt-on-body-${body}`}>
+    <g className="tf-module-body" data-guitar-module={`bolt-on-body-${body}`}>
       <defs>
         <clipPath id={`${prefix}-side-window`}>
           <path d="M300 670 H520 V1135 H95 V850 H300 Z" />

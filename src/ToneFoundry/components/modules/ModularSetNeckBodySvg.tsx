@@ -2,7 +2,7 @@ import { MODULAR_SET_BODY_PATHS, type ModularSetBodyId } from '../../guitar-syst
 
 export function ModularSetNeckBodySvg({ prefix, body }: { prefix:string; body:ModularSetBodyId }) {
   const path = MODULAR_SET_BODY_PATHS[body]
-  return <g data-guitar-module={`set-neck-body-${body}`}>
+  return <g className="tf-module-body" data-guitar-module={`set-neck-body-${body}`}>
     <defs>
       <clipPath id={`${prefix}-set-body-clip`}><path d={path}/></clipPath>
       <clipPath id={`${prefix}-set-side-window`}><path d="M300 560 H520 V1140 H80 V820 H300 Z"/></clipPath>

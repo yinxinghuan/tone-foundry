@@ -5,7 +5,7 @@ const frets = Array.from({ length: 21 }, (_, index) => GEO.nutY + GEO.scaleLengt
 export function ModularBoltOnNeckSvg({ prefix, neck }: { prefix: string; neck: ModularNeckId }) {
   const darkBoard = neck === 'rosewood-inline'
   return (
-    <g data-guitar-module={`bolt-on-neck-${neck}`}>
+    <g className="tf-module-neck" data-guitar-module={`bolt-on-neck-${neck}`}>
       <path d="M267 738 L274 202 L326 202 L333 738 Z" fill={`url(#${prefix}-maple)`} stroke="#58361f" strokeWidth=".8" vectorEffect="non-scaling-stroke" />
       <g data-guitar-part="six-inline-tuner-backs">
         {GEO.tunerPoints.map(([x, y]) => <path key={`${x}-${y}-key`} d={`M${x - 5} ${y - 7} Q${x - 16} ${y} ${x - 5} ${y + 7} L${x + 4} ${y + 5} L${x + 4} ${y - 5} Z`} fill={`url(#${prefix}-nickel)`} stroke="#555954" strokeWidth=".65" />)}

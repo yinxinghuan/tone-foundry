@@ -4,7 +4,7 @@ const frets = Array.from({length:22},(_,index)=>GEO.nutY+GEO.scaleLength*(1-2**(
 
 export function ModularSetNeckNeckSvg({prefix,neck}:{prefix:string;neck:ModularSetNeckId}) {
   const dots=neck==='dot-bound'
-  return <g data-guitar-module={`set-neck-neck-${neck}`}>
+  return <g className="tf-module-neck" data-guitar-module={`set-neck-neck-${neck}`}>
     <path d="M264 706 L270 199 L330 199 L336 706 Z" fill={`url(#${prefix}-set-mahogany)`} stroke="#371512" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
     <g data-guitar-part="three-aside-tuner-backs">
       {GEO.tunerPoints.map(([x,y],index)=>{const side=index<3?-1:1;return <g key={`${x}-${y}`}><path d={`M${x+side*3} ${y} H${x+side*20}`} stroke="#767873" strokeWidth="5"/><path d={`M${x+side*18} ${y-7} Q${x+side*31} ${y} ${x+side*18} ${y+7} L${x+side*10} ${y+5} L${x+side*10} ${y-5} Z`} fill={`url(#${prefix}-set-nickel)`} stroke="#555954" strokeWidth=".7"/></g>})}

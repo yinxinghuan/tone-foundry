@@ -17,6 +17,7 @@ import {
 import { locale } from '../i18n'
 import type { GuitarSpec } from '../types'
 import { ModularGuitarPreview as GuitarPreview } from './ModularGuitarPreview'
+import { AssemblyGuitarPreview } from './AssemblyGuitarPreview'
 import { PublicWall } from './PublicWall'
 import { useFoundrySave } from '../hooks/useFoundrySave'
 import { useGuitarWall } from '../hooks/useGuitarWall'
@@ -32,6 +33,8 @@ const copy = {
     stages: { body: '琴体', neck: '琴颈', pickups: '拾音器', bridge: '琴桥', finish: '饰面' },
     sealed: '打开下一个包裹', sealedNote: '里面只会出现这一次的候选。', open: '拆开包裹',
     choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个',
+    chooseTitle: { body: '先选它的轮廓', neck: '握住它的性格', pickups: '让它开始有声音', bridge: '决定琴弦落在哪里', finish: '最后，让木头显色' },
+    chooseDetail: { body: '轻点候选，琴体会在模具上显影。', neck: '镜头已移到琴颈，直接试装。', pickups: '不同线圈，会留下不同的攻击感。', bridge: '琴桥改变触弦、延音与回弹。', finish: '漆面会在确认前完整显影。' },
     workshop: '工坊级', select: '精选级', archive: '典藏级',
     platformBolt: '25.5 英寸螺栓颈工单', platformSet: '24.75 英寸胶合颈工单',
     complete: '你的琴做好了', completeNote: '五次选择，留下这一种声音。', listen: '试听', riff: '写一段 First Riff', save: '收进琴架', next: '再做一把', archiveLabel: '查看制造档案',
@@ -44,6 +47,8 @@ const copy = {
     stages: { body: 'Body', neck: 'Neck', pickups: 'Pickups', bridge: 'Bridge', finish: 'Finish' },
     sealed: 'Open the next parcel', sealedNote: 'Only this run’s candidates are inside.', open: 'Unwrap parcel',
     choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one',
+    chooseTitle: { body: 'Choose its silhouette', neck: 'Shape the hand feel', pickups: 'Give it a voice', bridge: 'Set the strings in place', finish: 'Let the wood show' },
+    chooseDetail: { body: 'Tap a candidate to reveal it on the form.', neck: 'The camera is on the neck. Trial-fit it here.', pickups: 'Each coil changes the attack.', bridge: 'The bridge changes touch, sustain and return.', finish: 'See the full finish before you keep it.' },
     workshop: 'Workshop', select: 'Select', archive: 'Archive',
     platformBolt: '25.5 in bolt-on order', platformSet: '24.75 in set-neck order',
     complete: 'Your guitar is ready', completeNote: 'Five choices left one distinct voice.', listen: 'Listen', riff: 'Write a First Riff', save: 'Add to rack', next: 'Make another', archiveLabel: 'View build archive',
@@ -203,9 +208,9 @@ export function BuildRun() {
 
   return <section className={`tfrun tfrun--build tfrun--${screen}`}>
     <div className="tfrun-progress" aria-label={`${progress + 1} / 5`}>{BUILD_STAGES.map((item,index)=><i key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''} />)}</div>
-    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><GuitarPreview platform={platform} config={previewConfig} />{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
+    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose'} trialing={Boolean(selectedOffer)} />{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
     <div className="tfrun-build__panel">
-      <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.choose}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseNote}</p></div>
+      <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseDetail[stage]}</p></div>
       {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TONE FOUNDRY</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
         <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>setSelectedOffer(offer)} aria-pressed={selectedOffer?.id===offer.id}><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
         <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>

@@ -21,7 +21,7 @@ function TuneOMatic({prefix}:{prefix:string}) { return <g data-guitar-part="tune
 
 export function ModularSetNeckHardwareSvg({prefix,body,pickups,bridge}:Props) {
   const pickupKind=pickups==='covered-humbuckers'?'covered':pickups==='soapbar-p90'?'soapbar':'mini'
-  return <g data-guitar-module={`set-neck-hardware-${pickups}-${bridge}`}>
+  return <g className="tf-module-hardware" data-guitar-module={`set-neck-hardware-${pickups}-${bridge}`}>
     <g data-guitar-part={`set-neck-pickguard-${body}`}>
       {body==='carved' && <path d="M238 706 C214 735 205 779 216 822 L239 874 C252 884 264 879 272 866 L267 731 Z" fill={`url(#${prefix}-set-guard)`} stroke="#423b33" strokeWidth="1" vectorEffect="non-scaling-stroke"/>}
       {body==='thin-horn' && <path d="M251 688 C220 718 212 780 230 840 L240 970 C257 1001 346 1003 366 972 L375 811 C375 754 348 706 330 688 Z" fill={`url(#${prefix}-set-guard)`} stroke="#514b48" strokeWidth="1" vectorEffect="non-scaling-stroke"/>}
