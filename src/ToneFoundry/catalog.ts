@@ -1,0 +1,138 @@
+import type { GuitarSpec } from './types'
+
+export const GUITARS: GuitarSpec[] = [
+  {
+    id: 'workshop-slab',
+    name: { zh: '经典黑护板', en: 'Blackguard Standard' },
+    family: { zh: '经典板式单切', en: 'Classic Slab Single-Cut' },
+    year: '1952 REFERENCE',
+    serial: 'TF-BG52-0714',
+    tags: {
+      zh: ['25.5 英寸', '双单线圈', '三鞍穿体桥'],
+      en: ['25.5 IN SCALE', 'DUAL SINGLE', '3-SADDLE'],
+    },
+    note: {
+      zh: '按经典五十年代板式单切的比例重建：白蜡木质感、螺栓枫木琴颈、桥板单线圈与三枚黄铜弦鞍。',
+      en: 'A proportion study of the classic fifties slab single-cut: ash character, bolt-on maple neck, bridge-plate single coil and three brass saddles.',
+    },
+    colors: { body: '#c79b52', edge: '#76552d', accent: '#e2bd73', guard: '#171716', metal: '#b9b7af' },
+    tone: { warmth: 38, brightness: 88, attack: 91, sustain: 46, drive: 32, space: 24 },
+    synthesis: { brightness: 0.88, damping: 0.48, bodyResonance: 0.34, pickupPosition: 0.82, output: 0.72, room: 0.12, drive: 0.18 },
+  },
+  {
+    id: 'carved-crown',
+    name: { zh: '余烬皇冠', en: 'Ember Crown' },
+    family: { zh: '雕面冠式单切', en: 'Carved Crown' },
+    year: '1958 LANGUAGE',
+    serial: 'TF-C58-1109',
+    tags: {
+      zh: ['雕面单切', '双线圈', '分体桥尾'],
+      en: ['CARVED SINGLE-CUT', 'TWIN COIL', 'STOP TAIL'],
+    },
+    note: {
+      zh: '厚实雕面、胶合琴颈与双线圈，把起音收圆，再把中频拖得很长。',
+      en: 'A carved top, set-neck response and twin coils round the attack and let the mids sing.',
+    },
+    colors: { body: '#a95332', edge: '#3d1717', accent: '#d99b51', guard: '#2b1714', metal: '#c1b9a9' },
+    tone: { warmth: 89, brightness: 47, attack: 55, sustain: 91, drive: 78, space: 31 },
+    synthesis: { brightness: 0.48, damping: 0.9, bodyResonance: 0.82, pickupPosition: 0.54, output: 0.9, room: 0.2, drive: 0.72 },
+  },
+  {
+    id: 'offset-current',
+    name: { zh: '潮汐电流', en: 'Tidal Current' },
+    family: { zh: '偏移电流', en: 'Offset Current' },
+    year: '1962 → 1991',
+    serial: 'TF-O62-9031',
+    tags: {
+      zh: ['偏移琴体', '宽单线圈', '浮动颤音'],
+      en: ['OFFSET BODY', 'BROAD SINGLE', 'FLOATING VIBRATO'],
+    },
+    note: {
+      zh: '长弦尾与浮动颤音留下一点不稳定的清响，适合把和弦铺成空间。',
+      en: 'A long afterlength and floating vibrato leave a controlled shimmer around wide chords.',
+    },
+    colors: { body: '#709b92', edge: '#345952', accent: '#a9c3b9', guard: '#633a2f', metal: '#b5b8b5' },
+    tone: { warmth: 53, brightness: 76, attack: 64, sustain: 69, drive: 41, space: 88 },
+    synthesis: { brightness: 0.72, damping: 0.69, bodyResonance: 0.61, pickupPosition: 0.65, output: 0.68, room: 0.68, drive: 0.3 },
+  },
+  {
+    id: 'timber-dreadnought',
+    name: { zh: '旷野木箱', en: 'Timber Dreadnought' },
+    family: { zh: '十四品无畏型木吉他', en: 'D-14 Fret Acoustic' },
+    year: '1916 → COMMON LANGUAGE',
+    serial: 'TF-AD14-1916',
+    tags: {
+      zh: ['25.4 英寸', '云杉面板', '空气共鸣箱'],
+      en: ['25.4 IN SCALE', 'SPRUCE TOP', 'AIR CHAMBER'],
+    },
+    note: {
+      zh: '宽下腹、深箱体与十四品接柄把低频和投射送到房间里；木桥、音孔与云杉面板共同决定它的起音。',
+      en: 'A wide lower bout, deep air chamber and fourteen-fret joint turn spruce attack into room-filling bass and projection.',
+    },
+    colors: { body: '#d29a52', edge: '#593025', accent: '#e7c98e', guard: '#44231b', metal: '#aaa9a2' },
+    tone: { warmth: 82, brightness: 62, attack: 72, sustain: 76, drive: 18, space: 67 },
+    synthesis: { brightness: 0.62, damping: 0.78, bodyResonance: 0.96, pickupPosition: 0.58, output: 0.76, room: 0.5, drive: 0.1 },
+  },
+  {
+    id: 'contour-sss',
+    name: { zh: '象牙轮廓', en: 'Ivory Contour' },
+    family: { zh: '轮廓双切三单线圈', en: 'Contour Double-Cut SSS' },
+    year: '1954 → MODERN STANDARD',
+    serial: 'TF-CS54-6480',
+    tags: { zh: ['25.5 英寸', '三单线圈', '同步颤音'], en: ['25.5 IN SCALE', 'SSS', 'SYNC TREM'] },
+    note: {
+      zh: '轮廓双切、三枚错位单线圈和同步颤音构成清晰而弹性的现代电吉他基准。',
+      en: 'A contoured double-cut, three staggered single coils and synchronized tremolo define the elastic modern solid-body baseline.',
+    },
+    colors: { body: '#d7d2b8', edge: '#77745f', accent: '#eee7cf', guard: '#d9ddc8', metal: '#bbbdb8' },
+    tone: { warmth: 48, brightness: 84, attack: 82, sustain: 58, drive: 44, space: 41 },
+    synthesis: { brightness: 0.82, damping: 0.58, bodyResonance: 0.44, pickupPosition: 0.7, output: 0.7, room: 0.24, drive: 0.28 },
+  },
+  {
+    id: 'centerblock-semi',
+    name: { zh: '樱桃中梁', en: 'Cherry Centerblock' },
+    family: { zh: '半空心双切', en: 'Semi-Hollow Double-Cut' },
+    year: '1958 CENTERBLOCK LANGUAGE',
+    serial: 'TF-SH58-6286',
+    tags: { zh: ['24.75 英寸', '双 F 孔', '中央实心梁'], en: ['24.75 IN SCALE', 'TWIN F-HOLES', 'CENTERBLOCK'] },
+    note: {
+      zh: '薄拱面箱体由中央实心梁压住反馈，两侧 f 孔和双线圈保留木质空气感与长延音。',
+      en: 'A maple centerblock controls the thin arched body while twin f-holes and humbuckers retain woody air and sustain.',
+    },
+    colors: { body: '#9e3528', edge: '#461716', accent: '#d07855', guard: '#211718', metal: '#c1bdb4' },
+    tone: { warmth: 84, brightness: 52, attack: 58, sustain: 86, drive: 67, space: 64 },
+    synthesis: { brightness: 0.52, damping: 0.84, bodyResonance: 0.88, pickupPosition: 0.56, output: 0.84, room: 0.4, drive: 0.58 },
+  },
+  {
+    id: 'thin-double-horn',
+    name: { zh: '深红双角', en: 'Crimson Twin Horn' },
+    family: { zh: '轻薄双角实心', en: 'Thin Double-Horn Solid' },
+    year: '1961 THIN SOLID',
+    serial: 'TF-DH61-6286',
+    tags: { zh: ['24.75 英寸', '薄桃花心木', '双线圈'], en: ['24.75 IN SCALE', 'THIN MAHOGANY', 'TWIN COIL'] },
+    note: {
+      zh: '高位接柄和两枚尖角让琴颈几乎完全暴露，薄桃花心木与大护板把中频推得直接。',
+      en: 'A high neck joint and unequal horns expose the upper register; thin mahogany and a full-face guard keep the mids immediate.',
+    },
+    colors: { body: '#9c3028', edge: '#481419', accent: '#c75b48', guard: '#171719', metal: '#b9b7b0' },
+    tone: { warmth: 78, brightness: 57, attack: 68, sustain: 82, drive: 86, space: 29 },
+    synthesis: { brightness: 0.56, damping: 0.82, bodyResonance: 0.7, pickupPosition: 0.58, output: 0.91, room: 0.17, drive: 0.82 },
+  },
+  {
+    id: 'concert-nylon',
+    name: { zh: '雪松音乐会', en: 'Cedar Concert' },
+    family: { zh: '十二品古典尼龙弦', en: '12-Fret Concert Nylon' },
+    year: '19TH C. → CONCERT STANDARD',
+    serial: 'TF-NY65-6500',
+    tags: { zh: ['650 毫米', '52 毫米琴枕', '开槽琴头'], en: ['650 MM SCALE', '52 MM NUT', 'SLOTTED HEAD'] },
+    note: {
+      zh: '十二品接柄、宽平指板、开槽琴头和系弦桥把古典右手触弦与尼龙弦的圆润起音放在首位。',
+      en: 'A 12-fret joint, wide flat board, slotted headstock and tie-block bridge prioritize classical right-hand articulation and nylon attack.',
+    },
+    colors: { body: '#c68c4b', edge: '#593024', accent: '#e3bd7a', guard: '#34201b', metal: '#b79b61' },
+    tone: { warmth: 91, brightness: 39, attack: 45, sustain: 63, drive: 9, space: 71 },
+    synthesis: { brightness: 0.4, damping: 0.7, bodyResonance: 0.98, pickupPosition: 0.5, output: 0.65, room: 0.54, drive: 0.04 },
+  },
+]
+
+export const STRING_FREQUENCIES = [82.41, 110, 146.83, 196, 246.94, 329.63]

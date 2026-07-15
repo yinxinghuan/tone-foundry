@@ -1,0 +1,26 @@
+export const ACOUSTIC_DREADNOUGHT_GEOMETRY = {
+  viewBox: '0 0 600 1200',
+  centerX: 300,
+  nutY: 205,
+  neckJointY: 601,
+  fingerboardEndY: 708,
+  saddleY: 918,
+  bridgePinY: 951,
+  scaleLength: 713,
+  nutX: [279, 287.4, 295.8, 304.2, 312.6, 321],
+  saddleX: [269, 281.4, 293.8, 306.2, 318.6, 331],
+  tunerPoints: [
+    [267, 170], [268, 129], [270, 88],
+    [330, 88], [332, 129], [333, 170],
+  ] as const,
+} as const
+
+export const ACOUSTIC_DREADNOUGHT_BODY_PATH = 'M270 594 C227 587 185 600 158 629 C132 657 128 697 145 735 C159 766 157 793 139 825 C113 869 101 927 108 987 C116 1053 157 1104 220 1123 C270 1138 330 1138 380 1123 C443 1104 484 1053 492 987 C499 927 487 869 461 825 C443 793 441 766 455 735 C472 697 468 657 442 629 C415 600 373 587 330 594 L323 622 L277 622 Z'
+
+export const ACOUSTIC_DREADNOUGHT_SIDE_PATH = ACOUSTIC_DREADNOUGHT_BODY_PATH
+
+export const ACOUSTIC_FRET_Y = Array.from({ length: 20 }, (_, index) => {
+  const fret = index + 1
+  return ACOUSTIC_DREADNOUGHT_GEOMETRY.nutY
+    + ACOUSTIC_DREADNOUGHT_GEOMETRY.scaleLength * (1 - 2 ** (-fret / 12))
+})
