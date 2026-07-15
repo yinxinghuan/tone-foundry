@@ -27,28 +27,28 @@ type RunScreen = 'start' | 'sealed' | 'choose' | 'complete' | 'riff' | 'collecti
 
 const copy = {
   zh: {
-    title: '今晚做一把什么琴？', intro: '开一张随机工单。每一步只从这次开出的部件里选一个。',
-    start: '开启新工单', collection: '我的琴架', wall: '公共琴墙', odds: '公开概率', oddsLine: 'WORKSHOP 68% · SELECT 27% · ARCHIVE 5%',
+    title: '做一把只属于你的琴', intro: '五个包裹。每次留下一个部件。',
+    start: '开始制琴', collection: '我的琴架', wall: '公共琴墙', odds: '部件等级', oddsLine: '工坊 68% · 精选 27% · 典藏 5%',
     stages: { body: '琴体', neck: '琴颈', pickups: '拾音器', bridge: '琴桥', finish: '饰面' },
-    sealed: '零件箱已到达', sealedNote: '本箱只包含当前步骤的 2–3 个候选。开启后不能刷新。', open: '拆开零件箱',
-    choose: '选择一个部件', chooseNote: '其余部件会退回仓库。选择确认后进入下一张工单。', mount: '装上这个部件',
+    sealed: '打开下一个包裹', sealedNote: '里面只会出现这一次的候选。', open: '拆开包裹',
+    choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个',
     workshop: '工坊级', select: '精选级', archive: '典藏级',
     platformBolt: '25.5 英寸螺栓颈工单', platformSet: '24.75 英寸胶合颈工单',
-    complete: '成琴检验完成', completeNote: '这把琴由本局五次抽取共同决定。', listen: '播放标准试听', riff: '写一段 First Riff', save: '放入琴架', next: '再开一张工单',
+    complete: '你的琴做好了', completeNote: '五次选择，留下这一种声音。', listen: '试听', riff: '写一段 First Riff', save: '收进琴架', next: '再做一把', archiveLabel: '查看制造档案',
     riffTitle: 'First Riff / 16 步草稿', riffNote: '轻点格子循环：关闭 → 音符 → 重音 → 闷音。', play: '播放', stop: '停止', back: '返回成琴', publish: '发布到公共琴墙', preset: '装入示范节奏',
-    empty: '琴架还是空的。完成第一把琴后，它会出现在这里。', view: '查看', backStart: '返回工单', gradeScore: '制造档案', saved: '已收入琴架',
+    empty: '琴架还是空的。完成第一把琴后，它会出现在这里。', view: '查看', backStart: '返回工单', gradeScore: '制造档案', saved: '已收入琴架', measure: '小节',
   },
   en: {
-    title: 'What will the bench build tonight?', intro: 'Open a random work order. At each step, keep one of the parts drawn for this run.',
-    start: 'Open new work order', collection: 'My rack', wall: 'Public wall', odds: 'Published odds', oddsLine: 'WORKSHOP 68% · SELECT 27% · ARCHIVE 5%',
+    title: 'Build a guitar that is only yours', intro: 'Five parcels. Keep one part from each.',
+    start: 'Start building', collection: 'My rack', wall: 'Public wall', odds: 'Part grades', oddsLine: 'Workshop 68% · Select 27% · Archive 5%',
     stages: { body: 'Body', neck: 'Neck', pickups: 'Pickups', bridge: 'Bridge', finish: 'Finish' },
-    sealed: 'Parts case delivered', sealedNote: 'This case contains only 2–3 candidates for the current step. No rerolls.', open: 'Open parts case',
-    choose: 'Choose one part', chooseNote: 'The other parts return to stock. Confirming advances the work order.', mount: 'Mount this part',
+    sealed: 'Open the next parcel', sealedNote: 'Only this run’s candidates are inside.', open: 'Unwrap parcel',
+    choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one',
     workshop: 'Workshop', select: 'Select', archive: 'Archive',
     platformBolt: '25.5 in bolt-on order', platformSet: '24.75 in set-neck order',
-    complete: 'Final inspection passed', completeNote: 'Five limited draws created this instrument.', listen: 'Play reference riff', riff: 'Write a First Riff', save: 'Add to rack', next: 'Open another order',
+    complete: 'Your guitar is ready', completeNote: 'Five choices left one distinct voice.', listen: 'Listen', riff: 'Write a First Riff', save: 'Add to rack', next: 'Make another', archiveLabel: 'View build archive',
     riffTitle: 'First Riff / 16-step draft', riffNote: 'Tap a cell to cycle: off → note → accent → mute.', play: 'Play', stop: 'Stop', back: 'Back to guitar', publish: 'Publish to public wall', preset: 'Load demo rhythm',
-    empty: 'Your rack is empty. Finish the first guitar to place it here.', view: 'View', backStart: 'Back to order', gradeScore: 'Build archive', saved: 'Added to rack',
+    empty: 'Your rack is empty. Finish the first guitar to place it here.', view: 'View', backStart: 'Back to order', gradeScore: 'Build archive', saved: 'Added to rack', measure: 'Bar',
   },
 } as const
 
@@ -94,10 +94,12 @@ export function BuildRun() {
   const [saved, setSaved] = useState(false)
   const [riff, setRiff] = useState<RiffPattern>(() => emptyRiff())
   const [playhead, setPlayhead] = useState(-1)
+  const [measure, setMeasure] = useState(0)
 
   const stage = BUILD_STAGES[stageIndex]
   const progress = screen === 'complete' || screen === 'riff' ? 5 : stageIndex
-  const selectedSource = useMemo(() => sourceGuitar(platform, config), [config, platform])
+  const previewConfig = useMemo(() => selectedOffer ? applyOffer(config, stage, selectedOffer) : config, [config, selectedOffer, stage])
+  const selectedSource = useMemo(() => sourceGuitar(platform, previewConfig), [platform, previewConfig])
 
   useEffect(() => {
     engineRef.current = new ToneEngine()
@@ -109,7 +111,7 @@ export function BuildRun() {
 
   const beginRun = () => {
     const seed = createRunSeed()
-    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); setRiff(emptyRiff()); setScreen('sealed')
+    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); setRiff(emptyRiff()); setMeasure(0); setScreen('sealed')
   }
 
   const openCase = () => {
@@ -171,41 +173,41 @@ export function BuildRun() {
 
   if (screen === 'start') return <section className="tfrun tfrun--start">
     <div className="tfrun-start__mark" aria-hidden="true"><span>TF</span><i /></div>
-    <p className="tfrun-kicker">TONE FOUNDRY / BUILD RUN</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
+    <p className="tfrun-kicker">TONE FOUNDRY</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
     <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}</button>
-    <button className="tfrun-secondary" type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button>
-    <button className="tfrun-secondary" type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button>
-    <div className="tfrun-odds"><span>{c.odds}</span><b>{c.oddsLine}</b></div>
+    <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
+    <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
   </section>
 
   if (screen === 'collection') return <section className="tfrun tfrun--collection">
-    <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('start')}>{c.backStart}</button><div><span>COLLECTION / {save.collection.length} OF 24</span><h2>{c.collection}</h2></div><button type="button" onClick={() => setScreen('wall')}>{c.wall}</button></header>
+    <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('start')}>{c.backStart}</button><div><h2>{c.collection}</h2></div><button type="button" onClick={() => setScreen('wall')}>{c.wall}</button></header>
     {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);setRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
   </section>
 
   if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setScreen('complete') }} />
 
   if (screen === 'riff') return <section className="tfrun tfrun--riff">
-    <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('complete')}>{c.back}</button><div><span>{riff.bpm} BPM / 4·4</span><h2>{c.riffTitle}</h2></div></header>
+    <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('complete')}>{c.back}</button><div><h2>{c.riffTitle}</h2></div></header>
     <p className="tfrun-riff__note">{c.riffNote}</p>
     <div className="tfrun-riff__tools"><button type="button" onClick={() => setRiff((current) => ({ ...current, bpm: current.bpm === 90 ? 120 : current.bpm === 120 ? 150 : 90 }))}>{riff.bpm} BPM</button><button type="button" onClick={loadDemoRiff}>{c.preset}</button></div>
-    <div className="tfrun-sequencer" role="grid" aria-label={c.riffTitle}>{riff.steps.map((track,stringIndex)=><div role="row" key={stringIndex}><b>{['E2','A2','D3','G3','B3','E4'][stringIndex]}</b>{track.map((cell,step)=><button type="button" role="gridcell" aria-pressed={cell>0} className={`${cell?'is-active':''} ${cell===2?'is-accent':''} ${cell===3?'is-muted':''} ${playhead===step?'is-playing':''}`} key={step} onClick={()=>setRiff((current)=>({...current,steps:current.steps.map((row,rowIndex)=>rowIndex===stringIndex?row.map((value,cellIndex)=>cellIndex===step?((value+1)%4) as RiffCell:value):row)}))}><span>{step+1}</span></button>)}</div>)}</div>
+    <nav className="tfrun-measures" aria-label={locale === 'zh' ? '选择小节' : 'Choose measure'}>{['I','II','III','IV'].map((label,index)=><button type="button" key={label} className={measure===index?'is-current':''} aria-pressed={measure===index} onClick={()=>setMeasure(index)}>{c.measure} {label}</button>)}</nav>
+    <div className="tfrun-sequencer" role="grid" aria-label={c.riffTitle}>{riff.steps.map((track,stringIndex)=><div role="row" key={stringIndex}><b>{['E2','A2','D3','G3','B3','E4'][stringIndex]}</b>{track.slice(measure*4,measure*4+4).map((cell,localStep)=>{const step=measure*4+localStep;return <button type="button" role="gridcell" aria-pressed={cell>0} className={`${cell?'is-active':''} ${cell===2?'is-accent':''} ${cell===3?'is-muted':''} ${playhead===step?'is-playing':''}`} key={step} onClick={()=>setRiff((current)=>({...current,steps:current.steps.map((row,rowIndex)=>rowIndex===stringIndex?row.map((value,cellIndex)=>cellIndex===step?((value+1)%4) as RiffCell:value):row)}))}><span>{step+1}</span></button>})}</div>)}</div>
     <div className="tfrun-riff__actions"><button className="tfrun-primary" type="button" onClick={() => void toggleRiffPlayback()}>{playhead >= 0 ? c.stop : c.play}</button><button className="tfrun-primary" type="button" onClick={publishCurrent}>{c.publish}</button></div>
   </section>
 
   if (screen === 'complete' && completed) return <section className="tfrun tfrun--complete">
     <div className="tfrun-result__light" aria-hidden="true" /><div className="tfrun-result__guitar"><GuitarPreview platform={platform} config={config} /></div>
-    <div className="tfrun-result__copy"><p className="tfrun-kicker">{completed.id} / SCORE {completed.rarityScore}</p><h2>{c.complete}</h2><p>{c.completeNote}</p><div className="tfrun-result__grades">{BUILD_STAGES.map((item)=><span key={item}>{c.stages[item]} · {gradeLabel(grades[item] ?? 'workshop')}</span>)}</div></div>
-    <div className="tfrun-result__actions"><button type="button" onClick={() => void playReference()}>{c.listen}</button><button type="button" onClick={() => setScreen('riff')}>{c.riff}</button><button className="is-primary" type="button" onClick={saveToRack} disabled={saved}>{saved ? c.saved : c.save}</button><button type="button" onClick={beginRun}>{c.next}</button></div>
+    <div className="tfrun-result__copy"><p className="tfrun-kicker">{completed.id} / SCORE {completed.rarityScore}</p><h2>{c.complete}</h2><p>{c.completeNote}</p><details className="tfrun-result__archive"><summary>{c.archiveLabel}</summary><div className="tfrun-result__grades">{BUILD_STAGES.map((item)=><span key={item}>{c.stages[item]} · {gradeLabel(grades[item] ?? 'workshop')}</span>)}</div></details></div>
+    <div className="tfrun-result__actions"><button className="is-primary" type="button" onClick={() => setScreen('riff')}>{c.riff}</button><div><button type="button" onClick={() => void playReference()}>{c.listen}</button><i /><button type="button" onClick={saveToRack} disabled={saved}>{saved ? c.saved : c.save}</button><i /><button type="button" onClick={beginRun}>{c.next}</button></div></div>
   </section>
 
   return <section className={`tfrun tfrun--build tfrun--${screen}`}>
-    <header className="tfrun-order"><div><span>WORK ORDER / {runId}</span><b>{platform === 'bolt-on' ? c.platformBolt : c.platformSet}</b></div><ol>{BUILD_STAGES.map((item,index)=><li key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''}><span>{index+1}</span><b>{c.stages[item]}</b></li>)}</ol></header>
-    <div className="tfrun-build__preview"><GuitarPreview platform={platform} config={config} /></div>
+    <div className="tfrun-progress" aria-label={`${progress + 1} / 5`}>{BUILD_STAGES.map((item,index)=><i key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''} />)}</div>
+    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><GuitarPreview platform={platform} config={previewConfig} />{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
     <div className="tfrun-build__panel">
-      <p className="tfrun-kicker">STEP {stageIndex + 1} / 5 · {c.stages[stage]}</p><h2>{screen === 'sealed' ? c.sealed : c.choose}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseNote}</p>
-      {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TF / {runId.slice(-4)}</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
-        <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>setSelectedOffer(offer)} aria-pressed={selectedOffer?.id===offer.id}><span>{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
+      <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.choose}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseNote}</p></div>
+      {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TONE FOUNDRY</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
+        <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>setSelectedOffer(offer)} aria-pressed={selectedOffer?.id===offer.id}><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
         <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>
       </>}
     </div>

@@ -27,7 +27,7 @@ export function PublicWall({ community, mine, loaded, onBack, onView }: Props) {
   return <section className="tfrun tfrun--wall">
     <header className="tfrun-pagehead">
       <button type="button" onClick={onBack}>{locale === 'zh' ? '返回琴架' : 'Back to rack'}</button>
-      <div><span>PUBLIC SIGNAL / {entries.length}</span><h2>{locale === 'zh' ? '公共琴墙' : 'Public guitar wall'}</h2></div>
+      <div><h2>{locale === 'zh' ? '公共琴墙' : 'Public guitar wall'}</h2></div>
     </header>
     {!loaded ? <p className="tfrun-empty">…</p> : entries.length === 0 ? <p className="tfrun-empty">{locale === 'zh' ? '还没有公开作品。发布第一段 riff，成为这里的第一把琴。' : 'No public instruments yet. Publish the first riff.'}</p> :
       <div className="tfrun-wall__grid">{entries.map((entry) => {

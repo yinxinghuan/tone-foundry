@@ -33,11 +33,18 @@
 }
 
 .tf-shell--build {
+  width: 100%;
+  max-width: none;
   height: 100dvh;
   display: flex;
   flex-direction: column;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  background: #0d0e0c;
 }
+
+.tf-shell--build::before { display: none; }
 
 .tf-shell--build .tf-header {
   width: min(100%, 1080px);
