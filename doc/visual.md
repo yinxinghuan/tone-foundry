@@ -104,4 +104,4 @@
 
 ## 12. Reusable pedal drawing pattern
 
-- 单块效果器的结构、材质、缩小规则和三轮视觉检查记录在 [effect-pedal-art.md](effect-pedal-art.md)。新增效果器必须先选独立硬件原型，再复用其中的旋钮、螺丝、脚踏、LED 与插口语言；禁止用同一个外壳换色扩展效果库。
+- 所有拟物小型物件遵循 [skeuomorphic-object-svg.md](skeuomorphic-object-svg.md)：先建立原型、装配逻辑和材质层，再通过结构 / 材质 / 缩小三轮检查。单块效果器的专用轮廓与控制规则补充在 [effect-pedal-art.md](effect-pedal-art.md)；新增效果器必须先选独立硬件原型，禁止用同一个外壳换色扩展效果库。
