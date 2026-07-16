@@ -22,15 +22,18 @@ export function ModularGuitarViewport({children,className='',label,minZoom=.8,ma
   const pointersRef=useRef(new Map<number,Point>())
   const dragStartRef=useRef<{point:Point;pan:Point}|null>(null)
   const pinchRef=useRef<{distance:number;zoom:number;midpoint:Point;pan:Point}|null>(null)
+  const panRef=useRef<Point>({x:0,y:0})
   const [zoom,setZoom]=useState(1)
   const [pan,setPan]=useState<Point>({x:0,y:0})
   const [dragging,setDragging]=useState(false)
 
+  const updatePan=(next:Point) => { panRef.current=next;setPan(next) }
+
   const constrainPan=useCallback((next:Point,nextZoom=zoom) => {
     const rect=surfaceRef.current?.getBoundingClientRect()
     if (!rect || nextZoom<=1) return {x:0,y:0}
-    const maxX=((nextZoom-1)*rect.width)/2+34
-    const maxY=((nextZoom-1)*rect.height)/2+34
+    const maxX=((nextZoom-1)*rect.width)/2+56
+    const maxY=((nextZoom-1)*rect.height)/2+96
     return {x:clamp(next.x,-maxX,maxX),y:clamp(next.y,-maxY,maxY)}
   },[zoom])
 
@@ -41,33 +44,34 @@ export function ModularGuitarViewport({children,className='',label,minZoom=.8,ma
         const rect=surfaceRef.current.getBoundingClientRect()
         const center={x:rect.width/2,y:rect.height/2}
         const ratio=bounded/current
-        setPan(currentPan=>constrainPan({x:anchor.x-center.x-(anchor.x-center.x-currentPan.x)*ratio,y:anchor.y-center.y-(anchor.y-center.y-currentPan.y)*ratio},bounded))
-      } else setPan(currentPan=>constrainPan(currentPan,bounded))
+        const next=constrainPan({x:anchor.x-center.x-(anchor.x-center.x-panRef.current.x)*ratio,y:anchor.y-center.y-(anchor.y-center.y-panRef.current.y)*ratio},bounded)
+        updatePan(next)
+      } else updatePan(constrainPan(panRef.current,bounded))
       return bounded
     })
   },[constrainPan,maxZoom,minZoom])
 
-  const reset=()=>{setZoom(1);setPan({x:0,y:0})}
+  const reset=()=>{setZoom(1);updatePan({x:0,y:0})}
   const onPointerDown=(event:ReactPointerEvent<HTMLDivElement>)=>{
     event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);pointersRef.current.set(event.pointerId,{x:event.clientX,y:event.clientY})
-    if (pointersRef.current.size===1) dragStartRef.current={point:{x:event.clientX,y:event.clientY},pan}
-    if (pointersRef.current.size===2) { const [a,b]=[...pointersRef.current.values()];pinchRef.current={distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),zoom,midpoint:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},pan};setDragging(true) }
+    if (pointersRef.current.size===1) dragStartRef.current={point:{x:event.clientX,y:event.clientY},pan:panRef.current}
+    if (pointersRef.current.size===2) { const [a,b]=[...pointersRef.current.values()];pinchRef.current={distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),zoom,midpoint:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},pan:panRef.current};setDragging(true) }
   }
   const onPointerMove=(event:ReactPointerEvent<HTMLDivElement>)=>{
     if (!pointersRef.current.has(event.pointerId)) return
     event.preventDefault();pointersRef.current.set(event.pointerId,{x:event.clientX,y:event.clientY})
-    if (pointersRef.current.size>=2 && pinchRef.current) { const [a,b]=[...pointersRef.current.values()];const distance=Math.max(1,Math.hypot(b.x-a.x,b.y-a.y));const midpoint={x:(a.x+b.x)/2,y:(a.y+b.y)/2};const nextZoom=clamp(pinchRef.current.zoom*distance/pinchRef.current.distance,minZoom,maxZoom);setZoom(nextZoom);setPan(constrainPan({x:pinchRef.current.pan.x+midpoint.x-pinchRef.current.midpoint.x,y:pinchRef.current.pan.y+midpoint.y-pinchRef.current.midpoint.y},nextZoom));return }
+    if (pointersRef.current.size>=2 && pinchRef.current) { const [a,b]=[...pointersRef.current.values()];const distance=Math.max(1,Math.hypot(b.x-a.x,b.y-a.y));const midpoint={x:(a.x+b.x)/2,y:(a.y+b.y)/2};const nextZoom=clamp(pinchRef.current.zoom*distance/pinchRef.current.distance,minZoom,maxZoom);setZoom(nextZoom);updatePan(constrainPan({x:pinchRef.current.pan.x+midpoint.x-pinchRef.current.midpoint.x,y:pinchRef.current.pan.y+midpoint.y-pinchRef.current.midpoint.y},nextZoom));return }
     const start=dragStartRef.current
     if (!start || zoom<=1) return
     const dx=event.clientX-start.point.x;const dy=event.clientY-start.point.y
     if (Math.hypot(dx,dy)<6 && !dragging) return
-    setDragging(true);setPan(constrainPan({x:start.pan.x+dx,y:start.pan.y+dy}))
+    setDragging(true);updatePan(constrainPan({x:start.pan.x+dx,y:start.pan.y+dy}))
   }
   const stopPointer=(event:ReactPointerEvent<HTMLDivElement>)=>{
     pointersRef.current.delete(event.pointerId)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
     if (pointersRef.current.size<2) pinchRef.current=null
-    if (pointersRef.current.size===1) { const point=[...pointersRef.current.values()][0];dragStartRef.current={point,pan} } else { dragStartRef.current=null;setDragging(false) }
+    if (pointersRef.current.size===1) { const point=[...pointersRef.current.values()][0];dragStartRef.current={point,pan:panRef.current} } else { dragStartRef.current=null;setDragging(false) }
   }
   const onWheel=(event:ReactWheelEvent<HTMLDivElement>)=>{event.preventDefault();const rect=event.currentTarget.getBoundingClientRect();applyZoom(zoom+(event.deltaY<0?.2:-.2),{x:event.clientX-rect.left,y:event.clientY-rect.top})}
   return <div className={`tfmod-viewer ${className}`} aria-label={label}>
