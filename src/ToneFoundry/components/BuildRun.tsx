@@ -46,7 +46,7 @@ const copy = {
     platformBolt: '25.5 英寸螺栓颈工单', platformSet: '24.75 英寸胶合颈工单',
     tuneTitle: '现在，听它怎么说话', tuneNote: '点选下方已开出的部件，吉他和声音会立刻变化。', tuneContinue: '确认这把琴', refit: '试装部件',
     complete: '你的琴做好了', completeNote: '五次选择，留下这一种声音。', listen: '试听', riff: '写一段 First Riff', save: '收进琴架', next: '再做一把', archiveLabel: '查看制造档案',
-    riffTitle: 'First Riff / 16 步草稿', riffNote: '轻点格子循环：关闭 → 音符 → 重音 → 闷音。', play: '播放', stop: '停止', back: '返回成琴', publish: '发布到公共琴墙', preset: '随机换一条预载 Riff',
+    riffTitle: 'First Riff / 步进草稿', riffNote: '轻点格子循环：关闭 → 音符 → 重音 → 闷音。预设会随效果器链优先匹配。', play: '播放', stop: '停止', back: '返回成琴', publish: '发布到公共琴墙', preset: '抽一条匹配效果器的预载 Riff',
     empty: '琴架还是空的。完成第一把琴后，它会出现在这里。', view: '查看', backStart: '返回工单', gradeScore: '制造档案', saved: '已收入琴架', measure: '小节',
   },
   en: {
@@ -61,7 +61,7 @@ const copy = {
     platformBolt: '25.5 in bolt-on order', platformSet: '24.75 in set-neck order',
     tuneTitle: 'Now hear it speak', tuneNote: 'Tap any revealed part below. The guitar and its voice change immediately.', tuneContinue: 'Keep this instrument', refit: 'Try fitted parts',
     complete: 'Specimen complete', completeNote: 'A unique instrument, indexed by shape and sound.', listen: 'Listen', riff: 'Write its First Riff', save: 'Add to collection', next: 'Make another', archiveLabel: 'View specimen record',
-    riffTitle: 'First Riff / 16-step study', riffNote: 'Tap a cell to cycle: off → note → accent → mute.', play: 'Play', stop: 'Stop', back: 'Back to instrument', publish: 'Publish to public index', preset: 'Draw another preset riff',
+    riffTitle: 'First Riff / step study', riffNote: 'Tap a cell to cycle: off → note → accent → mute. Presets favor your current pedal chain.', play: 'Play', stop: 'Stop', back: 'Back to instrument', publish: 'Publish to public index', preset: 'Draw an effect-matched preset',
     empty: 'Your collection is empty. Complete the first specimen to place it here.', view: 'View', backStart: 'Back to index', gradeScore: 'Archive score', saved: 'Added to collection', measure: 'Bar',
   },
 } as const
@@ -88,19 +88,27 @@ function InspectIcon({kind}:{kind:'play'|'stop'|'in'|'out'|'reset'|'tone'|'close
 
 const toneLabels:Record<ToneMetric,{zh:string;en:string}>={warmth:{zh:'温暖',en:'Warm'},brightness:{zh:'明亮',en:'Bright'},attack:{zh:'起音',en:'Attack'},sustain:{zh:'延音',en:'Sustain'},drive:{zh:'驱动',en:'Drive'},space:{zh:'空间',en:'Space'}}
 
-const RIFF_PRESETS:Array<{name:string;bpm:number;notes:Array<[number,number,RiffCell]>}>= [
-  {name:'DUSTY EIGHTHS',bpm:120,notes:[[0,0,2],[0,4,1],[0,8,2],[0,12,1],[1,2,1],[1,6,1],[1,10,1],[1,14,1],[2,3,3],[2,7,3],[2,11,3],[2,15,3],[4,6,1],[5,14,2]]},
-  {name:'GARAGE PULSE',bpm:150,notes:[[0,0,2],[0,8,2],[1,4,1],[1,12,1],[2,2,1],[2,6,1],[2,10,1],[2,14,1],[3,7,2],[3,15,2],[4,3,1],[4,11,1]]},
-  {name:'MIDNIGHT CHIME',bpm:90,notes:[[5,0,1],[4,2,1],[3,4,2],[4,6,1],[5,8,1],[4,10,1],[3,12,2],[2,14,1],[1,7,3],[1,15,3]]},
-  {name:'MUTED ENGINE',bpm:120,notes:[[0,0,3],[0,3,3],[0,6,3],[0,9,3],[0,12,3],[0,15,3],[1,2,1],[1,10,1],[2,6,2],[2,14,2],[3,4,1],[3,12,1]]},
-  {name:'SLOW BURN',bpm:90,notes:[[0,0,2],[0,12,2],[1,4,1],[1,8,1],[2,2,1],[2,10,1],[3,6,2],[4,14,1],[5,15,1]]},
-  {name:'OFFSET GLOW',bpm:120,notes:[[0,0,1],[1,1,1],[2,2,1],[3,3,2],[4,4,1],[5,5,1],[4,8,1],[3,9,2],[2,10,1],[1,11,1],[0,12,1],[3,15,2]]},
+type RiffPreset={name:string;bpm:number;effects:EffectId[];steps:16|32;notes:Array<[number,number,RiffCell]>}
+// Original studies built around classic effect-era playing techniques, never transcriptions.
+const RIFF_PRESETS:RiffPreset[]= [
+  {name:'DUSTY EIGHTHS',bpm:120,effects:['boost'],steps:16,notes:[[0,0,2],[0,4,1],[0,8,2],[0,12,1],[1,2,1],[1,6,1],[1,10,1],[1,14,1],[2,3,3],[2,7,3],[2,11,3],[2,15,3],[4,6,1],[5,14,2]]},
+  {name:'GARAGE PULSE',bpm:150,effects:['overdrive'],steps:16,notes:[[0,0,2],[0,8,2],[1,4,1],[1,12,1],[2,2,1],[2,6,1],[2,10,1],[2,14,1],[3,7,2],[3,15,2],[4,3,1],[4,11,1]]},
+  {name:'MUTED ENGINE',bpm:120,effects:['overdrive'],steps:16,notes:[[0,0,3],[0,3,3],[0,6,3],[0,9,3],[0,12,3],[0,15,3],[1,2,1],[1,10,1],[2,6,2],[2,14,2],[3,4,1],[3,12,1]]},
+  {name:'MIDNIGHT CHIME',bpm:90,effects:['chorus'],steps:32,notes:[[5,0,1],[4,2,1],[3,4,2],[4,6,1],[5,8,1],[4,10,1],[3,12,2],[2,14,1],[5,16,1],[4,18,1],[3,20,2],[4,22,1],[5,24,1],[4,26,1],[2,28,2],[1,30,1]]},
+  {name:'OFFSET GLOW',bpm:120,effects:['chorus'],steps:32,notes:[[0,0,1],[1,1,1],[2,2,1],[3,3,2],[4,4,1],[5,5,1],[4,8,1],[3,9,2],[2,10,1],[1,11,1],[0,12,1],[3,15,2],[0,16,1],[1,17,1],[2,18,1],[3,19,2],[4,20,1],[5,21,1],[4,24,1],[3,25,2],[2,26,1],[1,27,1],[0,28,1],[3,31,2]]},
+  {name:'SLOW BURN',bpm:90,effects:['boost','overdrive'],steps:32,notes:[[0,0,2],[0,12,2],[1,4,1],[1,8,1],[2,2,1],[2,10,1],[3,6,2],[4,14,1],[5,15,1],[0,16,2],[1,20,1],[2,18,1],[3,22,2],[4,30,1],[5,31,2]]},
+  {name:'REPEAT TRAIL',bpm:96,effects:['tape-echo'],steps:32,notes:[[5,0,2],[4,5,1],[3,9,1],[2,14,2],[4,16,1],[5,20,2],[3,25,1],[2,29,2]]},
+  {name:'TAPE PARADE',bpm:108,effects:['chorus','tape-echo'],steps:32,notes:[[0,0,2],[3,4,1],[4,7,1],[5,12,2],[2,16,1],[3,20,1],[4,23,2],[5,28,1],[1,30,2]]},
+  {name:'CLEAN AIR',bpm:110,effects:[],steps:16,notes:[[5,0,1],[4,3,1],[3,6,1],[2,9,2],[4,12,1],[5,15,1]]},
 ]
 
-function drawPresetRiff(exceptName?:string):RiffPattern {
+function drawPresetRiff(activeEffects:EffectId[]=[],exceptName?:string):RiffPattern {
   const pool=RIFF_PRESETS.filter(item=>item.name!==exceptName)
-  const preset=pool[Math.floor(Math.random()*pool.length)] ?? RIFF_PRESETS[0]
-  const next=emptyRiff();next.name=preset.name;next.bpm=preset.bpm
+  const score=(item:RiffPreset)=>item.effects.reduce((total,effect)=>total+(activeEffects.includes(effect)?3:-2),0)+(item.effects.length===0&&activeEffects.length===0?2:0)
+  const highScore=Math.max(...pool.map(score))
+  const matches=pool.filter(item=>score(item)===highScore)
+  const preset=matches[Math.floor(Math.random()*matches.length)] ?? RIFF_PRESETS[0]
+  const next=emptyRiff(preset.steps);next.name=preset.name;next.bpm=preset.bpm
   for (const [stringIndex,step,value] of preset.notes) next.steps[stringIndex][step]=value
   return next
 }
@@ -223,7 +231,7 @@ export function BuildRun() {
         const cell = track[step]
         if (cell) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, cell === 2 ? 1 : cell === 3 ? .38 : .72, effects)
       })
-      step = (step + 1) % 16
+      step = (step + 1) % Math.max(1, currentRiff.steps[0]?.length ?? 16)
       sequenceTimerRef.current = window.setTimeout(playStep, 60000 / currentRiff.bpm / 4)
     }
     playStep()
@@ -234,7 +242,7 @@ export function BuildRun() {
     save.saveBuild(completed); setSaved(true)
   }
 
-  const loadRandomRiff = () => updateRiff(drawPresetRiff(riffRef.current.name))
+  const loadRandomRiff = () => { updateRiff(drawPresetRiff(effects,riffRef.current.name)); setMeasure(0) }
 
   const publishCurrent = () => {
     if (!completed) return
@@ -283,11 +291,17 @@ export function BuildRun() {
     <div className="tfrun-tone__panel"><p className="tfrun-kicker">{completed.id} / TONE FITTING</p><h1>{c.tuneTitle}</h1><p>{c.tuneNote}</p><div className="tfrun-tone__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')} aria-pressed={channel==='clean'}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')} aria-pressed={channel==='drive'}>{c.driveChannel}</button></div><div className="tfrun-tone__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone__play" type="button" onClick={()=>void auditionBuild()}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button><section className="tfrun-effects" aria-label={locale==='zh'?'效果器链':'Effects chain'}><header><h2>{locale==='zh'?'效果器链':'Pedal chain'}</h2><span>{effects.length?effects.map(effect=>EFFECTS[effect].short).join(' → '):(locale==='zh'?'直通':'DRY')}</span></header><div>{(Object.keys(EFFECTS) as EffectId[]).map(effect=><EffectPedal key={effect} effect={effect} active={effects.includes(effect)} onToggle={()=>void toggleEffect(effect)}/>)}</div></section><section className="tfrun-tone__parts" aria-label={c.refit}>{BUILD_STAGES.map(item=><div key={item}><h2>{c.stages[item]}</h2><div>{(choiceBank[item] ?? []).map(offer=>{const compatible=isOfferCompatible(item,platform,config,offer.part);const active=config[item]===offer.part;return <button type="button" key={offer.id} className={`${active?'is-active':''} ${offer.grade==='archive'?'is-archive':''}`} disabled={!compatible} aria-pressed={active} onClick={()=>void tryTonePart(item,offer)}><b>{partLabel(offer.part)}</b><span>{gradeLabel(offer.grade)}</span></button>})}</div></div>)}</section><button className="tfrun-primary" type="button" onClick={()=>setScreen('complete')}>{c.tuneContinue}</button></div>
   </section>
 
+  const riffStepCount=riff.steps[0]?.length ?? 16
+  const riffBarCount=Math.max(1,Math.ceil(riffStepCount/4))
+  const riffBarGroupStart=Math.floor(measure/4)*4
+  const visibleBars=Array.from({length:Math.min(4,riffBarCount-riffBarGroupStart)},(_,index)=>riffBarGroupStart+index)
+  const presetProfile=RIFF_PRESETS.find(item=>item.name===riff.name.replace('REMIX / ',''))
+
   if (screen === 'riff') return <section className="tfrun tfrun--riff">
     <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('complete')}>{c.back}</button><div><h2>{c.riffTitle}</h2></div></header>
-    <p className="tfrun-riff__note"><b>{riff.name}</b>{c.riffNote}</p>
+    <p className="tfrun-riff__note"><b>{riff.name} · {riffStepCount} {locale==='zh'?'步':'STEPS'}{presetProfile&&<> · {presetProfile.effects.length?presetProfile.effects.map(effect=>EFFECTS[effect].short).join(' → '):(locale==='zh'?'直通':'DRY')}</>}</b>{c.riffNote}</p>
     <div className="tfrun-riff__tools"><button type="button" onClick={() => updateRiff((current) => ({ ...current, bpm: current.bpm === 90 ? 120 : current.bpm === 120 ? 150 : 90 }))}>{riff.bpm} BPM</button><button type="button" onClick={loadRandomRiff}>{c.preset}</button></div>
-    <nav className="tfrun-measures" aria-label={locale === 'zh' ? '选择小节' : 'Choose measure'}>{['I','II','III','IV'].map((label,index)=><button type="button" key={label} className={measure===index?'is-current':''} aria-pressed={measure===index} onClick={()=>setMeasure(index)}>{c.measure} {label}</button>)}</nav>
+    <nav className={`tfrun-measures ${riffBarCount>4?'is-paged':''}`} aria-label={locale === 'zh' ? '选择小节' : 'Choose measure'}>{riffBarCount>4&&<button type="button" className="tfrun-measures__page" disabled={riffBarGroupStart===0} onClick={()=>setMeasure(Math.max(0,measure-4))} aria-label={locale==='zh'?'前四小节':'Previous four bars'}><span>‹</span></button>}{visibleBars.map(index=>{const label=['I','II','III','IV','V','VI','VII','VIII'][index]??String(index+1);return <button type="button" key={label} className={measure===index?'is-current':''} aria-pressed={measure===index} onClick={()=>setMeasure(index)}>{c.measure} {label}</button>})}{riffBarCount>4&&<button type="button" className="tfrun-measures__page" disabled={riffBarGroupStart+4>=riffBarCount} onClick={()=>setMeasure(Math.min(riffBarCount-1,measure+4))} aria-label={locale==='zh'?'后四小节':'Next four bars'}><span>›</span></button>}</nav>
     <div className="tfrun-sequencer" role="grid" aria-label={c.riffTitle}>{riff.steps.map((track,stringIndex)=><div role="row" key={stringIndex}><b>{['E2','A2','D3','G3','B3','E4'][stringIndex]}</b>{track.slice(measure*4,measure*4+4).map((cell,localStep)=>{const step=measure*4+localStep;return <button type="button" role="gridcell" aria-pressed={cell>0} className={`${cell?'is-active':''} ${cell===2?'is-accent':''} ${cell===3?'is-muted':''} ${playhead===step?'is-playing':''}`} key={step} onClick={()=>updateRiff((current)=>({...current,steps:current.steps.map((row,rowIndex)=>rowIndex===stringIndex?row.map((value,cellIndex)=>cellIndex===step?((value+1)%4) as RiffCell:value):row)}))}><span>{step+1}</span></button>})}</div>)}</div>
     <div className="tfrun-riff__actions"><button className="tfrun-primary" type="button" onClick={() => void toggleRiffPlayback()}>{playhead >= 0 ? c.stop : c.play}</button><button className="tfrun-primary" type="button" onClick={publishCurrent}>{c.publish}</button></div>
   </section>

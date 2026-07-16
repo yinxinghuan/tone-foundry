@@ -38,10 +38,10 @@ export interface WallEntry {
 
 export const EMPTY_SAVE: ToneFoundrySave = { collection: [], published: [] }
 
-export function emptyRiff(): RiffPattern {
+export function emptyRiff(stepCount = 16): RiffPattern {
   return {
     name: 'FIRST RIFF',
     bpm: 120,
-    steps: Array.from({ length: 6 }, () => Array<RiffCell>(16).fill(0)),
+    steps: Array.from({ length: 6 }, () => Array<RiffCell>(stepCount).fill(0)),
   }
 }
