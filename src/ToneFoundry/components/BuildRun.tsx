@@ -30,8 +30,8 @@ type RunScreen = 'start' | 'sealed' | 'choose' | 'complete' | 'riff' | 'collecti
 
 const copy = {
   zh: {
-    title: '做一把只属于你的琴', intro: '五个包裹。每次留下一个部件。',
-    start: '开始制琴', collection: '我的琴架', wall: '公共琴墙', odds: '部件等级', oddsLine: '工坊 68% · 精选 27% · 典藏 5%',
+    title: '把声音做成一件物品', intro: '五次选择，做出一把只属于你的琴。',
+    start: '开始一份新标本', collection: '我的琴架', wall: '公共琴墙', odds: '部件等级', oddsLine: '工坊 68% · 精选 27% · 典藏 5%',
     stages: { body: '琴体', neck: '琴颈', pickups: '拾音器', bridge: '琴桥', finish: '饰面' },
     sealed: '打开下一个包裹', sealedNote: '里面只会出现这一次的候选。', open: '拆开包裹',
     choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个', audition: '试听当前组合', zoomIn: '放大', zoomOut: '缩小', resetZoom: '复位视图', toneLab: '音色测试', clean: '清音', driveChannel: '驱动',
@@ -204,12 +204,19 @@ export function BuildRun() {
   }
 
   if (screen === 'start') return <section className="tfrun tfrun--start">
-    <div className="tfrun-start__ticket">
-      <div className="tfrun-start__mark" aria-hidden="true"><span>TF</span><i /></div>
-      <p className="tfrun-kicker">TONE FOUNDRY · INSTRUMENT STUDY</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
-      <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}</button>
-      <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
-      <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
+    <div className="tfrun-start__hero">
+      <header className="tfrun-start__head"><span>TONE FOUNDRY / 01</span><b>{locale === 'zh' ? '乐器研究' : 'INSTRUMENT STUDY'}</b></header>
+      <div className="tfrun-start__instrument" aria-hidden="true">
+        <AssemblyGuitarPreview platform={platform} config={config} stage="body" stageIndex={0} focusing={false} trialing={false} />
+        <span className="tfrun-start__tag tfrun-start__tag--left">{locale === 'zh' ? '未组装' : 'UNASSEMBLED'}</span>
+        <span className="tfrun-start__tag tfrun-start__tag--right">05 {locale === 'zh' ? '个模块' : 'MODULES'}</span>
+      </div>
+      <div className="tfrun-start__copy">
+        <p className="tfrun-kicker">{locale === 'zh' ? '模块化吉他游戏' : 'A MODULAR GUITAR GAME'}</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
+        <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}<i aria-hidden="true" /></button>
+        <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
+        <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
+      </div>
     </div>
   </section>
 
