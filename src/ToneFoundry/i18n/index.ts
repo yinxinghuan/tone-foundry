@@ -3,7 +3,7 @@ export type Locale = 'zh' | 'en'
 function detectLocale(): Locale {
   const override = localStorage.getItem('game_locale')
   if (override === 'zh' || override === 'en') return override
-  return navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en'
+  return 'en'
 }
 
 export const locale = detectLocale()

@@ -44,18 +44,18 @@ const copy = {
     empty: '琴架还是空的。完成第一把琴后，它会出现在这里。', view: '查看', backStart: '返回工单', gradeScore: '制造档案', saved: '已收入琴架', measure: '小节',
   },
   en: {
-    title: 'Build a guitar that is only yours', intro: 'Five parcels. Keep one part from each.',
-    start: 'Start building', collection: 'My rack', wall: 'Public wall', odds: 'Part grades', oddsLine: 'Workshop 68% · Select 27% · Archive 5%',
+    title: 'Make sound into an object', intro: 'Five sealed choices. One instrument with a voice of its own.',
+    start: 'Begin a new specimen', collection: 'My instruments', wall: 'Public index', odds: 'Edition grades', oddsLine: 'Workshop 68% · Select 27% · Archive 5%',
     stages: { body: 'Body', neck: 'Neck', pickups: 'Pickups', bridge: 'Bridge', finish: 'Finish' },
-    sealed: 'Open the next parcel', sealedNote: 'Only this run’s candidates are inside.', open: 'Unwrap parcel',
+    sealed: 'Open the next specimen pack', sealedNote: 'This run contains a limited set of parts.', open: 'Reveal candidates',
     choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one', audition: 'Hear this build', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetZoom: 'Reset view', toneLab: 'Tone test', clean: 'Clean', driveChannel: 'Drive',
     chooseTitle: { body: 'Choose its silhouette', neck: 'Shape the hand feel', pickups: 'Give it a voice', bridge: 'Set the strings in place', finish: 'Let the wood show' },
     chooseDetail: { body: 'Tap a candidate to reveal it on the form.', neck: 'The camera is on the neck. Trial-fit it here.', pickups: 'Each coil changes the attack.', bridge: 'The bridge changes touch, sustain and return.', finish: 'See the full finish before you keep it.' },
     workshop: 'Workshop', select: 'Select', archive: 'Archive',
     platformBolt: '25.5 in bolt-on order', platformSet: '24.75 in set-neck order',
-    complete: 'Your guitar is ready', completeNote: 'Five choices left one distinct voice.', listen: 'Listen', riff: 'Write a First Riff', save: 'Add to rack', next: 'Make another', archiveLabel: 'View build archive',
-    riffTitle: 'First Riff / 16-step draft', riffNote: 'Tap a cell to cycle: off → note → accent → mute.', play: 'Play', stop: 'Stop', back: 'Back to guitar', publish: 'Publish to public wall', preset: 'Load demo rhythm',
-    empty: 'Your rack is empty. Finish the first guitar to place it here.', view: 'View', backStart: 'Back to order', gradeScore: 'Build archive', saved: 'Added to rack', measure: 'Bar',
+    complete: 'Specimen complete', completeNote: 'A unique instrument, indexed by shape and sound.', listen: 'Listen', riff: 'Write its First Riff', save: 'Add to collection', next: 'Make another', archiveLabel: 'View specimen record',
+    riffTitle: 'First Riff / 16-step study', riffNote: 'Tap a cell to cycle: off → note → accent → mute.', play: 'Play', stop: 'Stop', back: 'Back to instrument', publish: 'Publish to public index', preset: 'Load demo rhythm',
+    empty: 'Your collection is empty. Complete the first specimen to place it here.', view: 'View', backStart: 'Back to index', gradeScore: 'Archive score', saved: 'Added to collection', measure: 'Bar',
   },
 } as const
 
@@ -206,7 +206,7 @@ export function BuildRun() {
   if (screen === 'start') return <section className="tfrun tfrun--start">
     <div className="tfrun-start__ticket">
       <div className="tfrun-start__mark" aria-hidden="true"><span>TF</span><i /></div>
-      <p className="tfrun-kicker">TONE FOUNDRY · WORK ORDER</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
+      <p className="tfrun-kicker">TONE FOUNDRY · INSTRUMENT STUDY</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
       <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}</button>
       <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
       <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
@@ -241,7 +241,7 @@ export function BuildRun() {
     <div className="tfrun-progress" aria-label={`${progress + 1} / 5`}>{BUILD_STAGES.map((item,index)=><i key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''} />)}</div>
     <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><div className="tfrun-build__camera" style={{'--tf-manual-zoom':manualZoom} as CSSProperties}><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose'} trialing={Boolean(selectedOffer)} /></div><div className="tfrun-preview-tools" aria-label={locale==='zh'?'乐器检视工具':'Instrument inspection tools'}><button type="button" className={tonePanelOpen?'is-active':''} onClick={()=>setTonePanelOpen(value=>!value)} aria-label={c.toneLab} aria-pressed={tonePanelOpen}><InspectIcon kind="tone"/></button><button type="button" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer} aria-label={c.audition}><InspectIcon kind={auditioning?'stop':'play'}/></button><button type="button" onClick={()=>setManualZoom((value)=>Math.max(.8,+(value-.15).toFixed(2)))} disabled={manualZoom<=.8} aria-label={c.zoomOut}><InspectIcon kind="out"/></button><button className="tfrun-preview-tools__scale" type="button" onClick={()=>setManualZoom(1)} aria-label={c.resetZoom}>{Math.round(manualZoom*100)}</button><button type="button" onClick={()=>setManualZoom((value)=>Math.min(1.45,+(value+.15).toFixed(2)))} disabled={manualZoom>=1.45} aria-label={c.zoomIn}><InspectIcon kind="in"/></button></div>{tonePanelOpen&&<aside className="tfrun-tone-test"><header><span>{c.toneLab}</span><button type="button" onClick={()=>setTonePanelOpen(false)} aria-label={locale==='zh'?'关闭音色测试':'Close tone test'}><InspectIcon kind="close"/></button></header><div className="tfrun-tone-test__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')}>{c.driveChannel}</button></div><div className="tfrun-tone-test__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone-test__play" type="button" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button></aside>}{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
     <div className="tfrun-build__panel">
-      <div className="tfrun-build__folio" aria-hidden="true"><span>WORK ORDER</span><b>{String(stageIndex+1).padStart(2,'0')} / 05</b></div>
+      <div className="tfrun-build__folio" aria-hidden="true"><span>SPECIMEN BUILD</span><b>{String(stageIndex+1).padStart(2,'0')} / 05</b></div>
       <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseDetail[stage]}</p></div>
       {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TONE FOUNDRY</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
         <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
