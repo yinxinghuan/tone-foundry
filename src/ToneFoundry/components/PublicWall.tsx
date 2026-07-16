@@ -34,7 +34,7 @@ export function PublicWall({ community, mine, loaded, onBack, onView }: Props) {
         const self = entry.userId === 'self' || (!!telegramId && entry.userId === String(telegramId))
         return <article className="tfrun-wall__card" key={entry.guitar.id} onClick={() => onView(entry.guitar, entry)}>
           <div className="tfrun-wall__instrument"><ModularGuitarPreview platform={entry.guitar.platform} config={entry.guitar.config} /></div>
-          <div className="tfrun-wall__meta"><span>{entry.guitar.id}</span><b>{entry.guitar.riff.name}</b><small>{entry.guitar.riff.bpm} BPM · SCORE {entry.guitar.rarityScore}</small></div>
+          <div className="tfrun-wall__meta"><span>{entry.guitar.id}</span><b>{entry.guitar.riff.name}</b><small>{entry.guitar.riff.bpm} BPM · SCORE {entry.guitar.rarityScore}</small>{entry.guitar.remix&&<em>{locale==='zh'?`改编 · ${entry.guitar.remix.sourceAuthor || entry.guitar.remix.sourceGuitarId}`:`REMIX · ${entry.guitar.remix.sourceAuthor || entry.guitar.remix.sourceGuitarId}`}</em>}</div>
           {self ? <span className="tfrun-wall__self">{locale === 'zh' ? '你' : 'YOU'}</span> : <button
             type="button"
             className="tfrun-wall__author"

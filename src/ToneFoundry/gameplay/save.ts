@@ -1,4 +1,5 @@
 import type { CompletedBuild } from './buildRun'
+import type { EffectId } from '../audio/effects'
 
 export type RiffCell = 0 | 1 | 2 | 3
 
@@ -8,9 +9,18 @@ export interface RiffPattern {
   steps: RiffCell[][]
 }
 
+export interface RemixSource {
+  sourceEntryId: string
+  sourceGuitarId: string
+  sourceAuthor?: string
+  sourceAuthorId?: string
+}
+
 export interface PublishedGuitar extends CompletedBuild {
   riff: RiffPattern
   publishedAt: number
+  remix?: RemixSource
+  effects?: EffectId[]
 }
 
 export interface ToneFoundrySave {

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ToneEngine } from '../audio/ToneEngine'
+import { EFFECTS, type EffectId } from '../audio/effects'
+import { telegramId } from '@shared/runtime'
 import {
   BUILD_STAGES,
   applyOffer,
@@ -18,10 +20,11 @@ import { locale } from '../i18n'
 import { ModularGuitarPreview as GuitarPreview } from './ModularGuitarPreview'
 import { AssemblyGuitarPreview } from './AssemblyGuitarPreview'
 import { ModularGuitarViewport } from './ModularGuitarViewport'
+import { EffectPedal } from './EffectPedal'
 import { PublicWall } from './PublicWall'
 import { useFoundrySave } from '../hooks/useFoundrySave'
 import { useGuitarWall } from '../hooks/useGuitarWall'
-import { emptyRiff, type PublishedGuitar, type RiffCell, type RiffPattern } from '../gameplay/save'
+import { emptyRiff, type PublishedGuitar, type RemixSource, type RiffCell, type RiffPattern } from '../gameplay/save'
 import { guitarFromBuild } from '../gameplay/buildTone'
 import type { WallEntry } from '../gameplay/save'
 import { GuitarWallDetail } from './GuitarWallDetail'
@@ -127,6 +130,8 @@ export function BuildRun() {
   const [detailEntry, setDetailEntry] = useState<WallEntry | null>(null)
   const [choiceBank, setChoiceBank] = useState<Partial<Record<BuildStage, PartOffer[]>>>({})
   const [channel, setChannel] = useState<AmpChannel>('clean')
+  const [remixSource, setRemixSource] = useState<RemixSource | null>(null)
+  const [effects, setEffects] = useState<EffectId[]>([])
 
   const stage = BUILD_STAGES[stageIndex]
   const progress = screen === 'tone' || screen === 'complete' || screen === 'riff' ? 5 : stageIndex
@@ -150,7 +155,7 @@ export function BuildRun() {
 
   const beginRun = () => {
     const seed = createRunSeed()
-    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setChoiceBank({}); setCompleted(null); setSaved(false); updateRiff(emptyRiff()); setMeasure(0); setScreen('sealed')
+    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setChoiceBank({}); setCompleted(null); setSaved(false); setRemixSource(null); setEffects([]); updateRiff(emptyRiff()); setMeasure(0); setScreen('sealed')
   }
 
   const openCase = () => {
@@ -174,14 +179,14 @@ export function BuildRun() {
 
   const playReference = async () => {
     await engineRef.current?.enable()
-    engineRef.current?.playReference(selectedSource, 'clean')
+    engineRef.current?.playReference(selectedSource, 'clean', effects)
   }
 
   const auditionBuild = async () => {
     if (auditioning) { engineRef.current?.stopAll(); if (auditionTimerRef.current!==null) window.clearTimeout(auditionTimerRef.current); auditionTimerRef.current=null; setAuditioning(false); return }
     setAuditioning(true)
     let duration=0
-    try { await engineRef.current?.enable(); duration=engineRef.current?.playComparison(selectedSource,channel) ?? 0 } catch { setAuditioning(false); return }
+    try { await engineRef.current?.enable(); duration=engineRef.current?.playComparison(selectedSource,channel,effects) ?? 0 } catch { setAuditioning(false); return }
     auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80)
   }
 
@@ -194,7 +199,15 @@ export function BuildRun() {
     engineRef.current?.stopAll()
     if (auditionTimerRef.current!==null) window.clearTimeout(auditionTimerRef.current)
     setAuditioning(true)
-    try { await engineRef.current?.enable();const duration=engineRef.current?.playComparison(source,channel) ?? 0;auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80) } catch { setAuditioning(false) }
+    try { await engineRef.current?.enable();const duration=engineRef.current?.playComparison(source,channel,effects) ?? 0;auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80) } catch { setAuditioning(false) }
+  }
+
+  const toggleEffect = async (effect:EffectId) => {
+    const next=effects.includes(effect)?effects.filter(item=>item!==effect):[...effects,effect]
+    setEffects(next);engineRef.current?.stopAll()
+    if (auditionTimerRef.current!==null) window.clearTimeout(auditionTimerRef.current)
+    setAuditioning(true)
+    try { await engineRef.current?.enable();const duration=engineRef.current?.playComparison(selectedSource,channel,next) ?? 0;auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80) } catch { setAuditioning(false) }
   }
 
   const toggleRiffPlayback = async () => {
@@ -208,7 +221,7 @@ export function BuildRun() {
       setPlayhead(step)
       currentRiff.steps.forEach((track, stringIndex) => {
         const cell = track[step]
-        if (cell) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, cell === 2 ? 1 : cell === 3 ? .38 : .72)
+        if (cell) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, cell === 2 ? 1 : cell === 3 ? .38 : .72, effects)
       })
       step = (step + 1) % 16
       sequenceTimerRef.current = window.setTimeout(playStep, 60000 / currentRiff.bpm / 4)
@@ -225,10 +238,17 @@ export function BuildRun() {
 
   const publishCurrent = () => {
     if (!completed) return
-    const published: PublishedGuitar = { ...completed, riff, publishedAt: Date.now() }
+    const published: PublishedGuitar = { ...completed, riff, publishedAt: Date.now(), effects, ...(remixSource ? { remix: remixSource } : {}) }
     save.publish(published)
     wall.refresh()
     setScreen('wall')
+  }
+
+  const remixEntry = (entry:WallEntry) => {
+    const seed=createRunSeed()
+    const nextConfig={...entry.guitar.config}
+    const nextGrades={...entry.guitar.grades}
+    setRunId(seed.id);setPlatform(entry.guitar.platform);setConfig(nextConfig);setGrades(nextGrades);setEffects(entry.guitar.effects ?? []);setCompleted(finishBuild(seed.id,entry.guitar.platform,nextConfig,nextGrades));setSaved(false);setRemixSource({sourceEntryId:entry.guitar.id,sourceGuitarId:entry.guitar.id,sourceAuthor:entry.userName,sourceAuthorId:entry.userId});updateRiff({...entry.guitar.riff,name:`REMIX / ${entry.guitar.riff.name}`,steps:entry.guitar.riff.steps.map(row=>[...row])});setMeasure(0);setScreen('tone')
   }
 
   if (screen === 'start') return <section className="tfrun tfrun--start">
@@ -250,17 +270,17 @@ export function BuildRun() {
 
   if (screen === 'collection') return <section className="tfrun tfrun--collection">
     <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('start')}>{c.backStart}</button><div><h2>{c.collection}</h2></div><button type="button" onClick={() => setScreen('wall')}>{c.wall}</button></header>
-    {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);updateRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
+    {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);setRemixSource(null);setEffects([]);updateRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
   </section>
 
-  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); updateRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
+  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setEffects(guitar.effects ?? []); updateRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
 
-  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onBack={()=>{engineRef.current?.stopAll();if(sequenceTimerRef.current!==null)window.clearTimeout(sequenceTimerRef.current);sequenceTimerRef.current=null;setPlayhead(-1);setScreen('wall')}} />
+  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onRemix={detailEntry.userId==='self'||(!!telegramId&&detailEntry.userId===String(telegramId))?undefined:()=>remixEntry(detailEntry)} onBack={()=>{engineRef.current?.stopAll();if(sequenceTimerRef.current!==null)window.clearTimeout(sequenceTimerRef.current);sequenceTimerRef.current=null;setPlayhead(-1);setScreen('wall')}} />
 
   if (screen === 'tone' && completed) return <section className="tfrun tfrun--tone">
     <header className="tfrun-pagehead"><button type="button" onClick={()=>setScreen('complete')}>{locale==='zh'?'稍后再调':'Not now'}</button><div><h2>{locale==='zh'?'调音步骤':'Tone fitting'}</h2></div></header>
     <div className="tfrun-tone__stage"><ModularGuitarViewport className="tfrun-tone__viewer" label={locale==='zh'?'吉他查看器':'Instrument viewer'}><GuitarPreview platform={platform} config={config}/></ModularGuitarViewport></div>
-    <div className="tfrun-tone__panel"><p className="tfrun-kicker">{completed.id} / TONE FITTING</p><h1>{c.tuneTitle}</h1><p>{c.tuneNote}</p><div className="tfrun-tone__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')} aria-pressed={channel==='clean'}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')} aria-pressed={channel==='drive'}>{c.driveChannel}</button></div><div className="tfrun-tone__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone__play" type="button" onClick={()=>void auditionBuild()}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button><section className="tfrun-tone__parts" aria-label={c.refit}>{BUILD_STAGES.map(item=><div key={item}><h2>{c.stages[item]}</h2><div>{(choiceBank[item] ?? []).map(offer=>{const compatible=isOfferCompatible(item,platform,config,offer.part);const active=config[item]===offer.part;return <button type="button" key={offer.id} className={`${active?'is-active':''} ${offer.grade==='archive'?'is-archive':''}`} disabled={!compatible} aria-pressed={active} onClick={()=>void tryTonePart(item,offer)}><b>{partLabel(offer.part)}</b><span>{gradeLabel(offer.grade)}</span></button>})}</div></div>)}</section><button className="tfrun-primary" type="button" onClick={()=>setScreen('complete')}>{c.tuneContinue}</button></div>
+    <div className="tfrun-tone__panel"><p className="tfrun-kicker">{completed.id} / TONE FITTING</p><h1>{c.tuneTitle}</h1><p>{c.tuneNote}</p><div className="tfrun-tone__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')} aria-pressed={channel==='clean'}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')} aria-pressed={channel==='drive'}>{c.driveChannel}</button></div><div className="tfrun-tone__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone__play" type="button" onClick={()=>void auditionBuild()}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button><section className="tfrun-effects" aria-label={locale==='zh'?'效果器链':'Effects chain'}><header><h2>{locale==='zh'?'效果器链':'Pedal chain'}</h2><span>{effects.length?effects.map(effect=>EFFECTS[effect].short).join(' → '):(locale==='zh'?'直通':'DRY')}</span></header><div>{(Object.keys(EFFECTS) as EffectId[]).map(effect=><EffectPedal key={effect} effect={effect} active={effects.includes(effect)} onToggle={()=>void toggleEffect(effect)}/>)}</div></section><section className="tfrun-tone__parts" aria-label={c.refit}>{BUILD_STAGES.map(item=><div key={item}><h2>{c.stages[item]}</h2><div>{(choiceBank[item] ?? []).map(offer=>{const compatible=isOfferCompatible(item,platform,config,offer.part);const active=config[item]===offer.part;return <button type="button" key={offer.id} className={`${active?'is-active':''} ${offer.grade==='archive'?'is-archive':''}`} disabled={!compatible} aria-pressed={active} onClick={()=>void tryTonePart(item,offer)}><b>{partLabel(offer.part)}</b><span>{gradeLabel(offer.grade)}</span></button>})}</div></div>)}</section><button className="tfrun-primary" type="button" onClick={()=>setScreen('complete')}>{c.tuneContinue}</button></div>
   </section>
 
   if (screen === 'riff') return <section className="tfrun tfrun--riff">

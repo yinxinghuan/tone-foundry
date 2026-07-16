@@ -1,4 +1,5 @@
 import type { AmpChannel, GuitarSpec } from '../types'
+import type { EffectId } from './effects'
 import { renderPluckSamples } from './pluckModel'
 
 type ActiveVoice = AudioBufferSourceNode
@@ -42,7 +43,7 @@ export class ToneEngine {
     return this.context?.state === 'running'
   }
 
-  pluck(guitar: GuitarSpec, stringIndex: number, channel: AmpChannel, delay = 0, velocity = 0.82): void {
+  pluck(guitar: GuitarSpec, stringIndex: number, channel: AmpChannel, delay = 0, velocity = 0.82, effects: EffectId[] = []): void {
     const ctx = this.context
     const master = this.master
     if (!ctx || !master || ctx.state !== 'running') return
@@ -80,6 +81,7 @@ export class ToneEngine {
     source.connect(pickupFilter)
     pickupFilter.connect(bodyFilter)
 
+    let signal: AudioNode = bodyFilter
     if (channel === 'drive') {
       const shaper = ctx.createWaveShaper()
       shaper.curve = makeDriveCurve(0.16 + guitar.synthesis.drive * 0.3)
@@ -89,9 +91,16 @@ export class ToneEngine {
       driveTone.frequency.value = 3900 + guitar.synthesis.brightness * 1800
       bodyFilter.connect(shaper)
       shaper.connect(driveTone)
-      driveTone.connect(gain)
-    } else {
-      bodyFilter.connect(gain)
+      signal = driveTone
+    }
+    signal.connect(gain)
+
+    let output: AudioNode = gain
+    for (const effect of effects) {
+      if (effect === 'boost') { const boost=ctx.createGain();boost.gain.value=1.45;output.connect(boost);output=boost }
+      if (effect === 'overdrive') { const shaper=ctx.createWaveShaper();shaper.curve=makeDriveCurve(.34);shaper.oversample='4x';output.connect(shaper);output=shaper }
+      if (effect === 'chorus') { const dryChorus=ctx.createGain();const delayNode=ctx.createDelay(.08);const wetChorus=ctx.createGain();const mix=ctx.createGain();dryChorus.gain.value=.72;wetChorus.gain.value=.5;delayNode.delayTime.value=.028;output.connect(dryChorus);output.connect(delayNode);delayNode.connect(wetChorus);dryChorus.connect(mix);wetChorus.connect(mix);output=mix }
+      if (effect === 'tape-echo') { const direct=ctx.createGain();const echo=ctx.createDelay(.5);const echoGain=ctx.createGain();const mix=ctx.createGain();direct.gain.value=.8;echo.delayTime.value=.19;echoGain.gain.value=.28;output.connect(direct);output.connect(echo);echo.connect(echoGain);echoGain.connect(mix);direct.connect(mix);output=mix }
     }
 
     const dry = ctx.createGain()
@@ -100,8 +109,8 @@ export class ToneEngine {
     dry.gain.value = 1 - guitar.synthesis.room * 0.2
     wetDelay.delayTime.value = guitar.id === 'offset-current' ? 0.17 : guitar.id === 'timber-dreadnought' ? 0.042 : guitar.id === 'concert-nylon' ? 0.05 : 0.065
     wet.gain.value = guitar.synthesis.room * 0.24
-    gain.connect(dry)
-    gain.connect(wetDelay)
+    output.connect(dry)
+    output.connect(wetDelay)
     wetDelay.connect(wet)
     dry.connect(master)
     wet.connect(master)
@@ -112,7 +121,7 @@ export class ToneEngine {
     source.onended = () => this.active.delete(source)
   }
 
-  playReference(guitar: GuitarSpec, channel: AmpChannel): number {
+  playReference(guitar: GuitarSpec, channel: AmpChannel, effects: EffectId[] = []): number {
     this.stopAll()
     const beat = 0.5
     const sequence: Array<[number, number, number]> = [
@@ -122,15 +131,15 @@ export class ToneEngine {
       [5, 12, 0.92], [4, 13, 0.76], [3, 14, 0.8], [0, 15, 0.94],
     ]
     for (const [stringIndex, step, velocity] of sequence) {
-      this.pluck(guitar, stringIndex, channel, step * beat, velocity)
+      this.pluck(guitar, stringIndex, channel, step * beat, velocity, effects)
     }
     return 8
   }
 
-  playComparison(guitar: GuitarSpec, channel: AmpChannel): number {
+  playComparison(guitar: GuitarSpec, channel: AmpChannel, effects: EffectId[] = []): number {
     this.stopAll()
     const phrase: Array<[number, number, number]> = [[0,0,.9],[2,.38,.74],[4,.82,.82],[5,1.28,.92]]
-    for (const [stringIndex,delay,velocity] of phrase) this.pluck(guitar,stringIndex,channel,delay,velocity)
+    for (const [stringIndex,delay,velocity] of phrase) this.pluck(guitar,stringIndex,channel,delay,velocity,effects)
     return 2.4
   }
 
