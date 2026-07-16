@@ -4,7 +4,7 @@
 
 ## 1. 技术栈
 
-- React 18 + TypeScript 5 + Less，Vite 5 多页面构建；`base: './'`，输出 `dist/index.html` 与 `dist/review.html`。玩家 UI 的工单纸张、蓝墨印刷、检验章、琴盒、皮革和金属工具全部由 DOM / Less 绘制，不依赖不可缩放的界面截图。
+- React 18 + TypeScript 5 + Less，Vite 5 多页面构建；`base: './'`，输出 `dist/index.html`、`dist/review.html` 与独立的 `dist/ui-directions.html`。正式玩家 UI 与候选评审 UI 都由 DOM / Less 绘制，不依赖不可缩放的界面截图。
 - 乐器使用内联模块化 SVG，统一 `600 × 1200` 坐标系。玩家制琴使用互不混接的 `25.5 in bolt-on` 与 `24.75 in set-neck` 两个平台。
 - 音频使用 Web Audio API 与程序化拨弦采样；`ToneEngine` 提供 Clean / Drive、六弦拨奏、标准试听和音序器触发。
 - 存档使用本地同步 + Aigram 平台云存档；永久 UUID 为 `681b691b-2316-4b45-8154-bfbb0325d387`。
@@ -20,6 +20,8 @@ src/
   ToneFoundry/
     ToneFoundry.tsx                  # 极简玩家入口，仅挂载完整制琴状态机
     ReviewPage.tsx                   # 内部视觉与模块校准页
+    UIDirectionsPage.tsx             # 三套候选 UI 的交互式评审页
+    UIDirectionsPage.less            # 夜间制琴室 / 模块唱片社 / 声音标本馆
     gameplay/buildRun.ts             # 工单、抽取、等级、兼容与成琴
     gameplay/buildTone.ts            # 五类模块到合成参数与六维音色的映射
     gameplay/save.ts                 # 收藏、发布、Riff 数据结构
@@ -34,6 +36,7 @@ src/
     components/modules/              # 可换琴体、琴颈与硬件 SVG
 scripts/
   test-build-runs.ts                 # 2500 局概率与兼容性机械测试
+ui-directions.html                   # UI 重置评审入口，不替换正式游戏
 ```
 
 ## 3. 核心模块
@@ -52,6 +55,7 @@ scripts/
 - `useGuitarWall` 对每个保存行执行 `for (const guitar of save.published)`，不只取第一条；墙组件把本地发布立即合并进社区结果并按 `guitar.id` 去重。社区作者显示头像 + 名称，并在 Aigram 内打开其主页。
 - 琴墙卡片的 `onClick` 打开独立 `GuitarWallDetail`，而不是复用简化成琴页；详情包含可缩放生产 SVG、作者与主页入口、Guitar ID、稀有分、五部件清单、六维音色、First Riff BPM、播放/停止和 6×16 Riff 带。
 - 中文 / 英文由现有轻量 i18n 选择；独立评审页继续保留自由拼装、八把校准母版、缩放观察和音色表。
+- `ui-directions.html` 是与生产状态机隔离的设计评审入口。它复用真实 `ModularGuitarPreview`，分别展示入口、制琴和档案三种状态，并允许在三种琴体间即时切换；用户选定方向前不会改写 `BuildRun` 或正式 `doc/visual.md`。
 
 ## 4. 扩展点
 
@@ -63,3 +67,4 @@ scripts/
 - 换音色模型或放大器通道：`audio/pluckModel.ts` 与 `audio/ToneEngine.ts`。
 - 调整组件对音色的真实影响：`gameplay/buildTone.ts`；调整同屏试听面板与检视轨：`components/BuildRun.tsx` / `BuildRun.less`。
 - 继续精修母版比例和材质：`components/*GuitarSvg.tsx`、`components/modules/` 与 `review.html` 评审流程。
+- 选择并生产化新的 UI 方向：先在 `doc/ui-directions.md` 记录结论，再将胜出系统写回 `doc/visual.md`，最后以 `UIDirectionsPage.less` 中对应方向为视觉原型重构 `BuildRun.less`。

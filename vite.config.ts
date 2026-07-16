@@ -13,6 +13,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         review: resolve(__dirname, 'review.html'),
+        uiDirections: resolve(__dirname, 'ui-directions.html'),
       },
     },
   },
