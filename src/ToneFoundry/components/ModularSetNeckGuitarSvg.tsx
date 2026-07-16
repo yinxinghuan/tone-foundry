@@ -23,7 +23,7 @@ export function ModularSetNeckGuitarSvg({config,showAnchors=false}:{config:Modul
       <radialGradient id={`${prefix}-set-knob`} cx="34%" cy="27%"><stop stopColor="#665849"/><stop offset=".25" stopColor="#2c2621"/><stop offset=".75" stopColor="#11100f"/><stop offset="1" stopColor="#050505"/></radialGradient>
       <radialGradient id={`${prefix}-shadow`}><stop stopColor="#000" stopOpacity=".55"/><stop offset="1" stopColor="#000" stopOpacity="0"/></radialGradient>
     </defs>
-    <ModularSetNeckBodySvg prefix={prefix} body={config.body}/>
+    <ModularSetNeckBodySvg prefix={prefix} body={config.body} finish={config.finish}/>
     <ModularSetNeckNeckSvg prefix={prefix} neck={config.neck}/>
     <ModularSetNeckHardwareSvg prefix={prefix} body={config.body} pickups={config.pickups} bridge={config.bridge}/>
     <g className="tf-guitar__strings" data-guitar-module="set-neck-six-string-path">

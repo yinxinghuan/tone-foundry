@@ -34,8 +34,8 @@ const TONE_METRICS: Array<{ id: ToneMetric; zh: string; en: string }> = [
 const reviewCopy = {
   zh: {
     eyebrow: 'TONE FOUNDRY · CONTENT FOUNDATION REVIEW 01',
-    title: '八把校准母版，两套真实拼装平台',
-    intro: '八把精细琴覆盖不同弦长、接柄、箱体与桥尾语言；装配台把它们拆进 25.5 英寸螺栓颈与 24.75 英寸胶合颈两套真实 SVG 接口。',
+    title: '八把校准母版，十一种可玩基础琴型',
+    intro: '八把精细琴覆盖不同弦长、接柄、箱体与桥尾语言；装配台把十一种可玩琴型拆进 25.5 英寸螺栓颈与 24.75 英寸胶合颈两套真实 SVG 接口。',
     status: '本阶段已通过',
     openLab: '进入完整试琴台',
     overview: '01 / 全身比例与家族辨识',
@@ -69,13 +69,13 @@ const reviewCopy = {
     brightProxy: '明亮度代理',
     qa: '06 / 当前验收边界',
     qaNote: '评审页只总结已经完成并实际验证的部分。',
-    qaItems: ['八把校准母版覆盖四类实心电吉他、半空心、偏移与两类木吉他结构', '两套平台分别锁定 25.5 英寸螺栓颈与 24.75 英寸胶合颈的结构锚点', '每套平台均提供 5 个实时可换插槽与 6 个文化预设', '螺栓颈平台有 48 种、胶合颈平台有 224 种兼容组合', '更换琴身会联动桥位 / 拾音器兼容规则，不兼容件不可选', '360 / 390 / 430 / 1024 px 无横向溢出', '所有交互目标不小于 44×44 px', '切琴后检视倍率自动恢复 100%', '生产构建、音色断言和严格 UI 扫描通过', '未实现盲盒、解锁、音序器与公共琴墙'],
+    qaItems: ['八把校准母版覆盖四类实心电吉他、半空心、偏移与两类木吉他结构', '新增薄空心、反向偏移、V 翼、前卫角型与全空心拱面五种可玩基础琴型', '两套平台分别锁定 25.5 英寸螺栓颈与 24.75 英寸胶合颈的结构锚点', '每套平台均提供 5 个实时可换插槽、至少 8 个文化预设与 8 种可抽取饰面', '螺栓颈平台有 320 种、胶合颈平台有 336 种兼容组合', '更换琴身会联动桥位 / 拾音器兼容规则，不兼容件不可选', '360 / 390 / 430 / 1024 px 无横向溢出', '所有交互目标不小于 44×44 px', '切琴后检视倍率自动恢复 100%', '生产构建、音色断言和严格 UI 扫描通过'],
     footer: 'LOCAL REVIEW · NOT PUBLISHED',
   },
   en: {
     eyebrow: 'TONE FOUNDRY · CONTENT FOUNDATION REVIEW 01',
-    title: 'Eight calibration masters, two real assembly platforms',
-    intro: 'Eight detailed instruments cover distinct scale, joint, body, and bridge languages; the bench separates them into physically coherent 25.5 in bolt-on and 24.75 in set-neck SVG sockets.',
+    title: 'Eight calibration masters, eleven playable body families',
+    intro: 'Eight detailed instruments cover distinct scale, joint, body, and bridge languages; the bench expands them into eleven playable forms across physically coherent 25.5 in bolt-on and 24.75 in set-neck SVG sockets.',
     status: 'Stage accepted',
     openLab: 'Open full instrument lab',
     overview: '01 / Full proportions and family read',
@@ -109,7 +109,7 @@ const reviewCopy = {
     brightProxy: 'Brightness proxy',
     qa: '06 / Current acceptance boundary',
     qaNote: 'This page only summarizes implemented and verified work.',
-    qaItems: ['Eight calibration masters cover four solid-body languages, semi-hollow, offset, and two acoustic structures', 'Two platforms lock distinct 25.5 in bolt-on and 24.75 in set-neck construction anchors', 'Each platform exposes 5 live swappable slots and 6 culture presets', 'The bolt-on platform has 48 and the set-neck platform has 224 compatible combinations', 'Changing the body enforces bridge and pickup compatibility; mismatched parts cannot be selected', 'No horizontal overflow at 360 / 390 / 430 / 1024 px', 'All interaction targets are at least 44×44 px', 'Instrument switch restores the inspector to 100%', 'Production build, tone assertions, and strict UI audit pass', 'Blind boxes, unlocks, sequencer, and public wall are not implemented'],
+    qaItems: ['Eight calibration masters cover four solid-body languages, semi-hollow, offset, and two acoustic structures', 'Thinline, reverse offset, V-wing, angular solid, and full hollow archtop are now playable body families', 'Two platforms lock distinct 25.5 in bolt-on and 24.75 in set-neck construction anchors', 'Each platform exposes 5 live swappable slots, at least 8 culture presets, and 8 drawable finishes', 'The bolt-on platform has 320 and the set-neck platform has 336 compatible combinations', 'Changing the body enforces bridge and pickup compatibility; mismatched parts cannot be selected', 'No horizontal overflow at 360 / 390 / 430 / 1024 px', 'All interaction targets are at least 44×44 px', 'Instrument switch restores the inspector to 100%', 'Production build, tone assertions, and strict UI audit pass'],
     footer: 'LOCAL REVIEW · NOT PUBLISHED',
   },
 } as const

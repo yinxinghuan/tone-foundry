@@ -74,18 +74,18 @@ export function createRunSeed(): { id: string; platform: BuildPlatform; config: 
 function poolFor(stage: BuildStage, platform: BuildPlatform, config: BuildConfig): string[] {
   if (platform === 'bolt-on') {
     const bolt = config as ModularBoltOnConfig
-    if (stage === 'body') return ['slab', 'contour', 'offset']
+    if (stage === 'body') return ['slab', 'contour', 'offset', 'thinline', 'reverse']
     if (stage === 'neck') return ['maple-inline', 'rosewood-inline']
     if (stage === 'pickups') return BODY_PICKUPS[bolt.body]
     if (stage === 'bridge') return BODY_BRIDGES[bolt.body]
-    return ['blonde', 'sunburst', 'black', 'surf']
+    return ['blonde', 'sunburst', 'black', 'surf', 'copper', 'ice', 'walnut', 'ivory']
   }
   const setNeck = config as ModularSetNeckConfig
-  if (stage === 'body') return ['carved', 'centerblock', 'thin-horn']
+  if (stage === 'body') return ['carved', 'centerblock', 'thin-horn', 'v-wing', 'angular', 'archtop']
   if (stage === 'neck') return ['dot-bound', 'trapezoid-bound']
   if (stage === 'pickups') return SET_BODY_PICKUPS[setNeck.body]
   if (stage === 'bridge') return SET_BODY_BRIDGES[setNeck.body]
-  return ['cherry', 'gold', 'ebony', 'natural']
+  return ['cherry', 'gold', 'ebony', 'natural', 'wine', 'silver', 'tobacco', 'cream']
 }
 
 export function isOfferCompatible(stage: BuildStage, platform: BuildPlatform, config: BuildConfig, part: string): boolean {
@@ -110,7 +110,7 @@ export function drawOffers(stage: BuildStage, platform: BuildPlatform, config: B
 export function applyOffer(config: BuildConfig, stage: BuildStage, offer: PartOffer): BuildConfig {
   const next = { ...config, [stage]: offer.part } as BuildConfig
   if (stage === 'body' && 'body' in next) {
-    if (offer.part === 'slab' || offer.part === 'contour' || offer.part === 'offset') {
+    if (offer.part === 'slab' || offer.part === 'contour' || offer.part === 'offset' || offer.part === 'thinline' || offer.part === 'reverse') {
       const bolt = next as ModularBoltOnConfig
       return {
         ...bolt,

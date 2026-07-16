@@ -67,16 +67,16 @@ const copy = {
 } as const
 
 const partNames: Record<string, { zh:string; en:string }> = {
-  slab:{zh:'板式单切',en:'Slab single-cut'}, contour:{zh:'轮廓双切',en:'Contour double-cut'}, offset:{zh:'偏移琴体',en:'Offset body'},
-  carved:{zh:'雕面单切',en:'Carved single-cut'}, centerblock:{zh:'中心块半空心',en:'Centerblock semi'}, 'thin-horn':{zh:'薄双角',en:'Thin double-horn'},
+  slab:{zh:'板式单切',en:'Slab single-cut'}, contour:{zh:'轮廓双切',en:'Contour double-cut'}, offset:{zh:'偏移琴体',en:'Offset body'}, thinline:{zh:'薄空心单切',en:'Thinline single-cut'}, reverse:{zh:'反向偏移',en:'Reverse offset'},
+  carved:{zh:'雕面单切',en:'Carved single-cut'}, centerblock:{zh:'中心块半空心',en:'Centerblock semi'}, 'thin-horn':{zh:'薄双角',en:'Thin double-horn'}, 'v-wing':{zh:'V 翼实心',en:'V-wing solid'}, angular:{zh:'前卫角型',en:'Angular solid'}, archtop:{zh:'全空心拱面',en:'Full hollow archtop'},
   'maple-inline':{zh:'一体枫木六联',en:'Maple inline'}, 'rosewood-inline':{zh:'深色指板六联',en:'Dark-board inline'},
   'dot-bound':{zh:'圆点包边指板',en:'Bound dot board'}, 'trapezoid-bound':{zh:'梯形包边指板',en:'Bound trapezoid board'},
   'dual-single':{zh:'双单线圈',en:'Dual single'}, sss:{zh:'SSS 三单',en:'SSS triple'}, hss:{zh:'HSS 热改',en:'HSS hot rod'}, 'wide-dual':{zh:'双宽单线圈',en:'Dual wide single'},
   'covered-humbuckers':{zh:'双封闭线圈',en:'Covered humbuckers'}, 'soapbar-p90':{zh:'双皂条单线圈',en:'Soapbar singles'}, 'mini-humbuckers':{zh:'双迷你线圈',en:'Mini humbuckers'},
   'three-saddle':{zh:'三鞍桥板',en:'Three-saddle plate'}, tremolo:{zh:'同步颤音',en:'Synchronized trem'}, hardtail:{zh:'六鞍硬尾',en:'Hardtail'}, floating:{zh:'浮动颤音',en:'Floating vibrato'},
   stopbar:{zh:'止弦尾件',en:'Stop bar'}, trapeze:{zh:'梯形尾件',en:'Trapeze tail'}, 'short-vibrola':{zh:'短板颤音',en:'Short vibrola'},
-  blonde:{zh:'陈年金黄',en:'Aged blonde'}, sunburst:{zh:'三色渐变',en:'Three-tone burst'}, black:{zh:'旧黑',en:'Worn black'}, surf:{zh:'海玻璃绿',en:'Sea glass'},
-  cherry:{zh:'深樱桃红',en:'Deep cherry'}, gold:{zh:'陈年金色',en:'Aged gold'}, ebony:{zh:'黑檀漆面',en:'Ebony lacquer'}, natural:{zh:'自然枫木',en:'Natural maple'},
+  blonde:{zh:'陈年金黄',en:'Aged blonde'}, sunburst:{zh:'三色渐变',en:'Three-tone burst'}, black:{zh:'旧黑',en:'Worn black'}, surf:{zh:'海玻璃绿',en:'Sea glass'}, copper:{zh:'铜火金属漆',en:'Copper fire metallic'}, ice:{zh:'冰蓝金属漆',en:'Ice blue metallic'}, walnut:{zh:'透明胡桃',en:'Translucent walnut'}, ivory:{zh:'旧象牙',en:'Aged ivory'},
+  cherry:{zh:'深樱桃红',en:'Deep cherry'}, gold:{zh:'陈年金色',en:'Aged gold'}, ebony:{zh:'黑檀漆面',en:'Ebony lacquer'}, natural:{zh:'自然枫木',en:'Natural maple'}, wine:{zh:'酒红漆',en:'Wine nitro'}, silver:{zh:'银雾金属漆',en:'Silver mist metallic'}, tobacco:{zh:'烟草渐变',en:'Tobacco burst'}, cream:{zh:'奶油旧漆',en:'Aged cream'},
 }
 
 function gradeLabel(grade: BuildGrade) { return copy[locale][grade] }

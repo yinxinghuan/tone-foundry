@@ -31,7 +31,7 @@ export function ModularBoltOnGuitarSvg({ config, showAnchors = false }: { config
         <radialGradient id={`${prefix}-shadow`}><stop stopColor="#000" stopOpacity=".52" /><stop offset=".58" stopColor="#000" stopOpacity=".18" /><stop offset="1" stopColor="#000" stopOpacity="0" /></radialGradient>
       </defs>
 
-      <ModularBoltOnBodySvg prefix={prefix} body={config.body} />
+      <ModularBoltOnBodySvg prefix={prefix} body={config.body} finish={config.finish} />
       <ModularBoltOnNeckSvg prefix={prefix} neck={config.neck} />
       <ModularBoltOnHardwareSvg prefix={prefix} body={config.body} pickups={config.pickups} bridge={config.bridge} />
       <g className="tf-guitar__strings" data-guitar-module="shared-six-string-path">
