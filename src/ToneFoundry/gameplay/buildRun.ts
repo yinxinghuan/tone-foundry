@@ -88,6 +88,10 @@ function poolFor(stage: BuildStage, platform: BuildPlatform, config: BuildConfig
   return ['cherry', 'gold', 'ebony', 'natural']
 }
 
+export function isOfferCompatible(stage: BuildStage, platform: BuildPlatform, config: BuildConfig, part: string): boolean {
+  return poolFor(stage, platform, config).includes(part)
+}
+
 export function drawOffers(stage: BuildStage, platform: BuildPlatform, config: BuildConfig, runId: string): PartOffer[] {
   const pool = poolFor(stage, platform, config)
   const target = stage === 'body' ? 3 : stage === 'neck' ? 2 : Math.min(3, Math.max(2, pool.length))

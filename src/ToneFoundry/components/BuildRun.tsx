@@ -6,6 +6,7 @@ import {
   createRunSeed,
   drawOffers,
   finishBuild,
+  isOfferCompatible,
   type BuildConfig,
   type BuildGrade,
   type BuildPlatform,
@@ -27,7 +28,7 @@ import { GuitarWallDetail } from './GuitarWallDetail'
 import type { AmpChannel, ToneMetric } from '../types'
 import './BuildRun.less'
 
-type RunScreen = 'start' | 'sealed' | 'choose' | 'refit' | 'tone' | 'complete' | 'riff' | 'collection' | 'wall' | 'detail'
+type RunScreen = 'start' | 'sealed' | 'choose' | 'tone' | 'complete' | 'riff' | 'collection' | 'wall' | 'detail'
 
 const copy = {
   zh: {
@@ -40,7 +41,7 @@ const copy = {
     chooseDetail: { body: '轻点候选，琴体会在模具上显影。', neck: '镜头已移到琴颈，直接试装。', pickups: '不同线圈，会留下不同的攻击感。', bridge: '琴桥改变触弦、延音与回弹。', finish: '漆面会在确认前完整显影。' },
     workshop: '工坊级', select: '精选级', archive: '典藏级',
     platformBolt: '25.5 英寸螺栓颈工单', platformSet: '24.75 英寸胶合颈工单',
-    tuneTitle: '现在，听它怎么说话', tuneNote: '切换放大通道，实时试听这把琴的声音。需要的话，也可以回到已打开的候选里重新选择。', tuneContinue: '确认这把琴', refit: '更换已选部件', backToTune: '确认更换，返回调音',
+    tuneTitle: '现在，听它怎么说话', tuneNote: '点选下方已开出的部件，吉他和声音会立刻变化。', tuneContinue: '确认这把琴', refit: '试装部件',
     complete: '你的琴做好了', completeNote: '五次选择，留下这一种声音。', listen: '试听', riff: '写一段 First Riff', save: '收进琴架', next: '再做一把', archiveLabel: '查看制造档案',
     riffTitle: 'First Riff / 16 步草稿', riffNote: '轻点格子循环：关闭 → 音符 → 重音 → 闷音。', play: '播放', stop: '停止', back: '返回成琴', publish: '发布到公共琴墙', preset: '装入示范节奏',
     empty: '琴架还是空的。完成第一把琴后，它会出现在这里。', view: '查看', backStart: '返回工单', gradeScore: '制造档案', saved: '已收入琴架', measure: '小节',
@@ -55,7 +56,7 @@ const copy = {
     chooseDetail: { body: 'Tap a candidate to reveal it on the form.', neck: 'The camera is on the neck. Trial-fit it here.', pickups: 'Each coil changes the attack.', bridge: 'The bridge changes touch, sustain and return.', finish: 'See the full finish before you keep it.' },
     workshop: 'Workshop', select: 'Select', archive: 'Archive',
     platformBolt: '25.5 in bolt-on order', platformSet: '24.75 in set-neck order',
-    tuneTitle: 'Now hear it speak', tuneNote: 'Switch the amp channel and hear this guitar in real time. You can also revisit any revealed part before you keep it.', tuneContinue: 'Keep this instrument', refit: 'Revisit a fitted part', backToTune: 'Use this and return to tone fitting',
+    tuneTitle: 'Now hear it speak', tuneNote: 'Tap any revealed part below. The guitar and its voice change immediately.', tuneContinue: 'Keep this instrument', refit: 'Try fitted parts',
     complete: 'Specimen complete', completeNote: 'A unique instrument, indexed by shape and sound.', listen: 'Listen', riff: 'Write its First Riff', save: 'Add to collection', next: 'Make another', archiveLabel: 'View specimen record',
     riffTitle: 'First Riff / 16-step study', riffNote: 'Tap a cell to cycle: off → note → accent → mute.', play: 'Play', stop: 'Stop', back: 'Back to instrument', publish: 'Publish to public index', preset: 'Load demo rhythm',
     empty: 'Your collection is empty. Complete the first specimen to place it here.', view: 'View', backStart: 'Back to index', gradeScore: 'Archive score', saved: 'Added to collection', measure: 'Bar',
@@ -111,7 +112,7 @@ export function BuildRun() {
   const [channel, setChannel] = useState<AmpChannel>('clean')
 
   const stage = BUILD_STAGES[stageIndex]
-  const progress = screen === 'refit' || screen === 'tone' || screen === 'complete' || screen === 'riff' ? 5 : stageIndex
+  const progress = screen === 'tone' || screen === 'complete' || screen === 'riff' ? 5 : stageIndex
   const previewConfig = useMemo(() => selectedOffer ? applyOffer(config, stage, selectedOffer) : config, [config, selectedOffer, stage])
   const selectedSource = useMemo(() => guitarFromBuild(platform, previewConfig), [platform, previewConfig])
 
@@ -147,18 +148,11 @@ export function BuildRun() {
     const nextConfig = applyOffer(config, stage, selectedOffer)
     const nextGrades = { ...grades, [stage]: selectedOffer.grade }
     setConfig(nextConfig); setGrades(nextGrades); setSelectedOffer(null); setOffers([])
-    if (screen === 'refit') {
-      setCompleted(finishBuild(runId, platform, nextConfig, nextGrades)); setScreen('tone')
-    } else if (stageIndex === BUILD_STAGES.length - 1) {
+    if (stageIndex === BUILD_STAGES.length - 1) {
       setCompleted(finishBuild(runId, platform, nextConfig, nextGrades)); setScreen('tone')
     } else {
       setStageIndex((current) => current + 1); setScreen('sealed')
     }
-  }
-
-  const openRefit = (target:BuildStage) => {
-    const index=BUILD_STAGES.indexOf(target)
-    setStageIndex(index); setOffers(choiceBank[target] ?? drawOffers(target,platform,config,runId)); setSelectedOffer(null); setScreen('refit')
   }
 
   const playReference = async () => {
@@ -172,6 +166,18 @@ export function BuildRun() {
     let duration=0
     try { await engineRef.current?.enable(); duration=engineRef.current?.playComparison(selectedSource,channel) ?? 0 } catch { setAuditioning(false); return }
     auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80)
+  }
+
+  const tryTonePart = async (target:BuildStage, offer:PartOffer) => {
+    if (!isOfferCompatible(target,platform,config,offer.part)) return
+    const nextConfig=applyOffer(config,target,offer)
+    const nextGrades={...grades,[target]:offer.grade}
+    const source=guitarFromBuild(platform,nextConfig)
+    setConfig(nextConfig);setGrades(nextGrades);setCompleted(finishBuild(runId,platform,nextConfig,nextGrades))
+    engineRef.current?.stopAll()
+    if (auditionTimerRef.current!==null) window.clearTimeout(auditionTimerRef.current)
+    setAuditioning(true)
+    try { await engineRef.current?.enable();const duration=engineRef.current?.playComparison(source,channel) ?? 0;auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80) } catch { setAuditioning(false) }
   }
 
   const toggleRiffPlayback = async () => {
@@ -242,7 +248,7 @@ export function BuildRun() {
   if (screen === 'tone' && completed) return <section className="tfrun tfrun--tone">
     <header className="tfrun-pagehead"><button type="button" onClick={()=>setScreen('complete')}>{locale==='zh'?'稍后再调':'Not now'}</button><div><h2>{locale==='zh'?'调音步骤':'Tone fitting'}</h2></div></header>
     <div className="tfrun-tone__stage"><ModularGuitarViewport className="tfrun-tone__viewer" label={locale==='zh'?'吉他查看器':'Instrument viewer'}><GuitarPreview platform={platform} config={config}/></ModularGuitarViewport></div>
-    <div className="tfrun-tone__panel"><p className="tfrun-kicker">{completed.id} / TONE FITTING</p><h1>{c.tuneTitle}</h1><p>{c.tuneNote}</p><div className="tfrun-tone__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')} aria-pressed={channel==='clean'}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')} aria-pressed={channel==='drive'}>{c.driveChannel}</button></div><div className="tfrun-tone__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone__play" type="button" onClick={()=>void auditionBuild()}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button><details className="tfrun-tone__refit"><summary>{c.refit}</summary><div>{BUILD_STAGES.map(item=><button type="button" key={item} onClick={()=>openRefit(item)}>{c.stages[item]}<span>{partLabel(config[item])}</span></button>)}</div></details><button className="tfrun-primary" type="button" onClick={()=>setScreen('complete')}>{c.tuneContinue}</button></div>
+    <div className="tfrun-tone__panel"><p className="tfrun-kicker">{completed.id} / TONE FITTING</p><h1>{c.tuneTitle}</h1><p>{c.tuneNote}</p><div className="tfrun-tone__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')} aria-pressed={channel==='clean'}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')} aria-pressed={channel==='drive'}>{c.driveChannel}</button></div><div className="tfrun-tone__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone__play" type="button" onClick={()=>void auditionBuild()}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button><section className="tfrun-tone__parts" aria-label={c.refit}>{BUILD_STAGES.map(item=><div key={item}><h2>{c.stages[item]}</h2><div>{(choiceBank[item] ?? []).map(offer=>{const compatible=isOfferCompatible(item,platform,config,offer.part);const active=config[item]===offer.part;return <button type="button" key={offer.id} className={`${active?'is-active':''} ${offer.grade==='archive'?'is-archive':''}`} disabled={!compatible} aria-pressed={active} onClick={()=>void tryTonePart(item,offer)}><b>{partLabel(offer.part)}</b><span>{gradeLabel(offer.grade)}</span></button>})}</div></div>)}</section><button className="tfrun-primary" type="button" onClick={()=>setScreen('complete')}>{c.tuneContinue}</button></div>
   </section>
 
   if (screen === 'riff') return <section className="tfrun tfrun--riff">
@@ -262,10 +268,10 @@ export function BuildRun() {
 
   return <section className={`tfrun tfrun--build tfrun--${screen}`}>
     <div className="tfrun-progress" aria-label={`${progress + 1} / 5`}>{BUILD_STAGES.map((item,index)=><i key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''} />)}</div>
-    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><ModularGuitarViewport className="tfrun-build__viewport" label={locale==='zh'?'乐器查看器':'Instrument viewer'} maxZoom={2.1}><div className="tfrun-build__camera"><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose' || screen === 'refit'} trialing={Boolean(selectedOffer)} /></div></ModularGuitarViewport><div className="tfrun-preview-tools"><button type="button" className="is-sound" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer} aria-label={c.audition}><InspectIcon kind={auditioning?'stop':'play'}/></button></div>{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
+    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><ModularGuitarViewport className="tfrun-build__viewport" label={locale==='zh'?'乐器查看器':'Instrument viewer'} maxZoom={2.1}><div className="tfrun-build__camera"><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose'} trialing={Boolean(selectedOffer)} /></div></ModularGuitarViewport><div className="tfrun-preview-tools"><button type="button" className="is-sound" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer} aria-label={c.audition}><InspectIcon kind={auditioning?'stop':'play'}/></button></div>{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
     <div className="tfrun-build__panel">
-      <div className="tfrun-build__folio" aria-hidden="true"><span>SPECIMEN BUILD</span><b>{screen==='refit'?(locale==='zh'?'更换':'REFIT'):`${String(stageIndex+1).padStart(2,'0')} / 05`}</b></div>
-      <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : screen==='refit' ? c.refit : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : screen==='refit' ? c.chooseDetail[stage] : c.chooseDetail[stage]}</p></div>
+      <div className="tfrun-build__folio" aria-hidden="true"><span>SPECIMEN BUILD</span><b>{`${String(stageIndex+1).padStart(2,'0')} / 05`}</b></div>
+      <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseDetail[stage]}</p></div>
       {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}>
         <span className="tfrun-case__number" aria-hidden="true">{String(stageIndex + 1).padStart(2, '0')}</span>
         <span className="tfrun-case__copy">
@@ -275,7 +281,7 @@ export function BuildRun() {
         <i className="tfrun-case__seal" aria-hidden="true" />
       </button> : <>
         <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
-        <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{screen==='refit' ? c.backToTune : c.mount}</button>
+        <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>
       </>}
     </div>
   </section>
