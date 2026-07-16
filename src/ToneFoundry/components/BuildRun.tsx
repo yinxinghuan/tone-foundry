@@ -243,7 +243,14 @@ export function BuildRun() {
     <div className="tfrun-build__panel">
       <div className="tfrun-build__folio" aria-hidden="true"><span>SPECIMEN BUILD</span><b>{String(stageIndex+1).padStart(2,'0')} / 05</b></div>
       <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseDetail[stage]}</p></div>
-      {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TONE FOUNDRY</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
+      {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}>
+        <span className="tfrun-case__number" aria-hidden="true">{String(stageIndex + 1).padStart(2, '0')}</span>
+        <span className="tfrun-case__copy">
+          <small>{locale === 'zh' ? `密封部件 · ${c.stages[stage]}` : `SEALED SPECIMEN · ${c.stages[stage].toUpperCase()}`}</small>
+          <b>{c.open}</b>
+        </span>
+        <i className="tfrun-case__seal" aria-hidden="true" />
+      </button> : <>
         <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
         <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>
       </>}
