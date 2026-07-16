@@ -127,6 +127,13 @@ export class ToneEngine {
     return 8
   }
 
+  playComparison(guitar: GuitarSpec, channel: AmpChannel): number {
+    this.stopAll()
+    const phrase: Array<[number, number, number]> = [[0,0,.9],[2,.38,.74],[4,.82,.82],[5,1.28,.92]]
+    for (const [stringIndex,delay,velocity] of phrase) this.pluck(guitar,stringIndex,channel,delay,velocity)
+    return 2.4
+  }
+
   stopAll(): void {
     for (const source of this.active) {
       try {

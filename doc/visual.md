@@ -4,7 +4,7 @@
 
 - **Game and audience**：面向喜欢吉他、精致物件、收藏与轻量音乐创作的手机用户；懂琴的人能读出结构，不懂琴的人也能凭轮廓、材质与声音理解差异。
 - **Emotional promise**：像在深夜 custom shop 的检验台上，第一次看到并听见一把刚完成、只属于自己的琴。
-- **One-sentence visual thesis**：一把收藏级模块化 SVG 吉他独处在打开的深绿琴盒中，界面像一次安静的私人开箱仪式，以负空间、窄束工作灯和极少量黄铜细节建立拟物可信度。
+- **One-sentence visual thesis**：一把收藏级模块化 SVG 吉他躺在打开的深绿琴盒中，玩家在一张张米白工单、靛蓝印章和黑色手写检验记号上完成选择，像亲手跟随一家老式 custom shop 的真实制造档案。
 - **Signature visual moment**：换琴后工作灯沿琴头到琴桥缓慢扫过，木纹、雕面、镀铬和六根弦依次显形，随后第一根弦被拨响。
 - **Three required qualities**：精密、可触、克制。
 - **Three directions to avoid**：霓虹合成器皮肤、廉价卡通乐器、用大量 blur / glow 冒充高级质感。
@@ -16,7 +16,7 @@
 - **Playfield focal area**：制琴态手机以约 `56–62dvh` 的完整吉他舞台为核心，下方仅容纳当前包裹或 2–3 个候选与确认动作；桌面仍保持单一居中仪式构图，不再使用左琴右后台控制台。试音态手机上方 58–66% 为吉他与六弦直接交互区。
 - **Foreground**：金属硬件、琴弦、漆面高光和可交互触弦反馈。
 - **Midground**：完整吉他、软垫支撑与检验标签。
-- **Background**：深胡桃工作台和低对比工具轮廓，不出现抢眼装饰。
+- **Background**：深绿琴盒毡布、皮革包边、低对比缝线和局部暖灯，不出现工程软件网格或抢眼装饰。
 - **HUD safe areas**：顶部保留 `max(16px, env(safe-area-inset-top))`；底部控制区保留 `max(18px, env(safe-area-inset-bottom))`。
 - **Attention path**：完整吉他 → 当前被试装的部件差异 → 唯一主动作。工单、平台、编号和概率不得抢占前三层注意力。
 - **Instrument inspector**：整琴视图为 `100%`，细节视图允许 `100%–350%` 连续缩放；琴始终在带裁切的毡布检验台内移动，工具条不随琴缩放。
@@ -33,6 +33,9 @@
 - **Signal Amber** `#E5B85C`：播放头、聚焦和实时触弦。
 - **Error Oxide** `#A65342`：错误与不可用状态。
 - **Success Patina** `#6E9A79`：保存和音频就绪。
+- **Receipt Stock** `#EEE3CB`：工单、候选封签、声音档案与琴墙卡片。
+- **Carbon Ink** `#211F1B`：手写圈选、批注与主正文。
+- **Workshop Blue** `#1752A6`：单色印刷、表格线、编号、选中章和主要动作。
 - **Usage ratio**：背景与中性材料 72%，吉他饰面 20%，功能强调 8%。
 - **Forbidden combinations**：大面积纯黑配高饱和霓虹；紫蓝粉渐变；黄铜色同时承担所有按钮状态。
 
@@ -49,19 +52,20 @@
 
 ## 4. Typography
 
-- **Instrument display**：`Avenir Next Condensed`, `Arial Narrow`, `PingFang SC`, sans-serif；用于工作台标题、平台型号和大型编号，20–38 px，600–700 weight，形成老吉他目录与舞台设备的窄体节奏，不再使用泛奢侈品衬线标题。
+- **Receipt headline**：`Arial Narrow`, `Avenir Next Condensed`, `PingFang SC`, sans-serif；用于工单大标题、包裹编号和主要动作，20–42 px，700–800 weight，采用靛蓝单色印刷的紧凑节奏。
 - **Culture / provenance**：`Songti SC`, `STSong`, serif；只用于琴名、年代说明与文化注释，16–22 px，避免整页都像技术面板。
 - **UI / body**：`Avenir Next`, `Helvetica Neue`, `PingFang SC`, `Microsoft YaHei`, sans-serif；移动端正文至少 16 px，部件按钮 13–15 px，500–650 weight。
 - **Numeric / technical**：`SFMono-Regular`, `Roboto Mono`, monospace；BPM、编号和频率使用 tabular numerals。
+- **Handwritten annotation**：只用于已选择、检验通过和一次性批注，优先系统手写 / 楷体回退 `"Kaiti SC", "STKaiti", cursive`；不承担正文，也不下载装饰性网络字体。
 - **Case rules**：英文技术标签使用 0.08em tracking 的 uppercase；中文不加字距。
 - **Outline rules**：文字不使用描边、发光或金属渐变。
 
 ## 5. Shape, material, and lighting
 
-- **Dominant shapes**：吉他曲线与真实硬件几何是主角；UI 使用窄矩形铭牌、刻度槽、琴盒圆角和机械拨档。
+- **Dominant shapes**：吉他曲线与真实硬件几何是主角；信息 UI 使用收据矩形、细表格线、圆形 / 菱形检验章、票据编号和手写圈选；工具仍使用窄金属铭牌、刻度槽与机械拨档。
 - **Corner language**：普通面板 8–12 px；金属铭牌 3–5 px；胶木旋钮为圆形。禁止所有容器统一 20+ px 大圆角。
 - **Borders and shadows**：边框以 1 px 暗边 + 1 px 内高光表达厚度；整体阴影偏左下，模糊半径受控在 8–24 px。
-- **Materials**：胡桃木、开放木蜡、硝基漆感高光、龟纹护板、胶木、镍、铬、黄铜、棉布和琴盒毡。
+- **Materials**：胡桃木、皮革、开放木蜡、硝基漆感高光、龟纹护板、胶木、镍、铬、黄铜、棉布和琴盒毡构成空间；无涂层米白纸、褪色蓝墨、黑铅笔 / 记号笔构成信息层。纸张使用细纤维、压痕、轻翘边和接触阴影，禁止均匀噪点覆盖。
 - **Light**：主光从左上 28–35 度照入，暖中性 `#F3DEB2`；右下有极弱冷反射。每个 SVG 模块必须服从这一方向。
 - **Texture rule**：纹理描述材料结构，不作为随机噪声覆盖。木纹随琴体长轴与雕面弯曲；金属拉丝方向一致；磨损只出现在接触区域。
 - **Calibration-master parity**：后四把不得使用“通用琴颈 + 通用胶囊硬件 + 单一 body gradient”的低保真组合。每把至少需要 body-depth、top / bevel、finish-light、neck、headstock-back hardware、fingerboard、frets、markers、pickguard / binding、pickup / soundhole、bridge、tailpiece / tie block、controls、strings 与 fastener 层；100% 时结构成立，350% 时仍能解释装配关系。
@@ -99,10 +103,12 @@
 
 - **Icon family**：自绘 24×24、1.75 stroke 的圆角机械线性 SVG；播放三角、暂停、音量、A/B、信息、返回和设置保持统一。
 - **Buttons**：主要试听按钮为黄铜边框的深胶木按键，至少 48 px 高；次级切换使用放大器式拨档或刻度槽。
-- **Panels**：参数区域像检验卡压在工作台上，不使用玻璃拟态；内容区允许 linen 背景，技术区使用暗金属铭牌。
+- **Panels**：参数、候选、收藏和档案像真实检验卡 / 收据压在工作台或琴盒边缘；采用米白纸、靛蓝表格线、编号、盖章与少量黑色手写圈选。试听 / 缩放仍是黑色金属控制条，形成“纸负责判断、机器负责操作”的清晰分工。
 - **Builder screen contract**：玩家制琴占满安全视口，外层项目标题、工作区导航、页脚和试音实验入口全部隐藏。一个状态只回答一个问题：打开包裹，或选择并确认一个部件。
 - **Builder hierarchy**：第一焦点永远是整把吉他；第二层是当前包裹或候选；第三层才是安静的 5 点进度。弦长平台、工单号、兼容数量、锚点、manifest 与步骤名称均不常驻。
-- **Cultural signature**：舞台来自打开的硬壳琴盒——深绿绒布、窄黄铜包边、局部暖灯和底部标签槽。候选像三张放在琴盒脚边的纸封签，而不是后台控制卡或 SaaS 面板。
+- **Cultural signature**：舞台来自打开的硬壳琴盒——深绿绒布、皮革包边、窄黄铜、局部暖灯；底部是一张被夹在琴盒边缘的制造工单。候选像工单上的 2–3 张可撕封签，选中后出现不完全规整的黑色手写圈和蓝色检验章，而不是发光卡片或 SaaS 面板。
+- **Inspection rail**：试听、缩放和复位集成在舞台右侧一条窄黑金属控制条内；44 px 自绘 SVG 按键像放大器面板，不展开成新的导航层。自动部位推镜和手动缩放叠加，复位只重置手动倍率。
+- **Wall detail**：详情页像一张打开的 custom-shop 检验档案：上半部为可缩放成琴，下半部为作者铭牌、模块清单、六维音色和 Riff 穿孔纸带。它必须明显比墙卡丰富，也不能退回结算页的按钮布局。
 - **Trial-fit contract**：候选按下后立刻把该部件临时装上主吉他；候选的选中轮廓、主吉他的局部亮度变化和确认按钮同时响应。切换候选不得等到下一步才更新吉他。
 - **Progress**：仅显示 5 个 `4–6 px` 圆点；已完成点使用 muted brass，当前点略宽或提高亮度，禁止数字、步骤名和整行 tab。
 - **Start state**：只保留品牌小标、短标题、一个“开始制琴”按钮；琴架与公共琴墙成为底部低强调文字入口，概率折叠为一行可选说明。
@@ -132,6 +138,8 @@
 - **高端吉他产品摄影**：用单一受控光线揭示雕面、漆层和硬件；不复制具体品牌布景。
 - **Custom shop inspection bench**：让标签、编号和工具说明工艺过程；不把界面做成真实电商商品页。
 - **Vintage amplifier control plate**：把播放、通道与参数做成可触机械对象；不牺牲移动端可读性。
+- **Old workshop receipt / studio proof**：使用米白纸、靛蓝单色印刷、窄体标题、极细框线和上下对齐的字段建立秩序；手写只覆盖玩家最终选择，不能变成整页装饰字体。
+- **Rubber inspection stamps**：圆形、椭圆、菱形和票据章用来表达 Archive、通过、编号与所有权；边缘略有印刷缺口，但不得牺牲文字清晰度。
 - **Museum instrument display**：将乐器作为文化对象并提供出处；不做冰冷白盒展柜。
 - **Hard case interior**：用毡布、金属扣和检验卡建立收藏仪式；不让每张墙卡都变成厚重相框。
 
@@ -152,6 +160,9 @@
 - 禁止候选选择只改变卡片样式而不改变主吉他预览；用户确认前必须看见该候选真实装配后的整琴。
 - 禁止新工单一开始展示带完整漆面、硬件和投影的成琴；禁止用突跳或重新挂载 SVG 伪装镜头切换；禁止为了“精致”增加无意义玻璃卡、霓虹泛光和大量金边。
 - 禁止大面积规则网格、重复 1 px 分隔线、全大写技术标签和四级等权矩形同时出现；它们会把开箱仪式退化为工程后台。
+- 禁止试听按钮只播放与候选无关的母版音色；禁止把缩放工具删除后只保留自动镜头；禁止墙卡详情只显示一把琴和四个结算按钮。
+- 禁止把参考图直接复制成平面海报：纸张只承载工单和档案，吉他舞台仍必须保留琴盒、皮革、木头、黄铜与金属的拟物空间。
+- 禁止用大量随意旋转、污渍、咖啡渍、撕裂和假手写制造“复古”；每一枚章、圈选和磨损都必须对应一次真实选择或工坊状态。
 
 ## 11. Vertical-slice acceptance
 

@@ -9,7 +9,7 @@ interface Props {
   mine: PublishedGuitar[]
   loaded: boolean
   onBack: () => void
-  onView: (guitar: PublishedGuitar) => void
+  onView: (guitar: PublishedGuitar, entry: WallEntry) => void
 }
 
 export function PublicWall({ community, mine, loaded, onBack, onView }: Props) {
@@ -32,7 +32,7 @@ export function PublicWall({ community, mine, loaded, onBack, onView }: Props) {
     {!loaded ? <p className="tfrun-empty">…</p> : entries.length === 0 ? <p className="tfrun-empty">{locale === 'zh' ? '还没有公开作品。发布第一段 riff，成为这里的第一把琴。' : 'No public instruments yet. Publish the first riff.'}</p> :
       <div className="tfrun-wall__grid">{entries.map((entry) => {
         const self = entry.userId === 'self' || (!!telegramId && entry.userId === String(telegramId))
-        return <article className="tfrun-wall__card" key={entry.guitar.id} onClick={() => onView(entry.guitar)}>
+        return <article className="tfrun-wall__card" key={entry.guitar.id} onClick={() => onView(entry.guitar, entry)}>
           <div className="tfrun-wall__instrument"><ModularGuitarPreview platform={entry.guitar.platform} config={entry.guitar.config} /></div>
           <div className="tfrun-wall__meta"><span>{entry.guitar.id}</span><b>{entry.guitar.riff.name}</b><small>{entry.guitar.riff.bpm} BPM · SCORE {entry.guitar.rarityScore}</small></div>
           {self ? <span className="tfrun-wall__self">{locale === 'zh' ? '你' : 'YOU'}</span> : <button

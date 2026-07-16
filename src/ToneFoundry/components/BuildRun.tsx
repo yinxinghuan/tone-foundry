@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { GUITARS } from '../catalog'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { ToneEngine } from '../audio/ToneEngine'
 import {
   BUILD_STAGES,
@@ -15,16 +14,19 @@ import {
   type PartOffer,
 } from '../gameplay/buildRun'
 import { locale } from '../i18n'
-import type { GuitarSpec } from '../types'
 import { ModularGuitarPreview as GuitarPreview } from './ModularGuitarPreview'
 import { AssemblyGuitarPreview } from './AssemblyGuitarPreview'
 import { PublicWall } from './PublicWall'
 import { useFoundrySave } from '../hooks/useFoundrySave'
 import { useGuitarWall } from '../hooks/useGuitarWall'
 import { emptyRiff, type PublishedGuitar, type RiffCell, type RiffPattern } from '../gameplay/save'
+import { guitarFromBuild } from '../gameplay/buildTone'
+import type { WallEntry } from '../gameplay/save'
+import { GuitarWallDetail } from './GuitarWallDetail'
+import type { AmpChannel, ToneMetric } from '../types'
 import './BuildRun.less'
 
-type RunScreen = 'start' | 'sealed' | 'choose' | 'complete' | 'riff' | 'collection' | 'wall'
+type RunScreen = 'start' | 'sealed' | 'choose' | 'complete' | 'riff' | 'collection' | 'wall' | 'detail'
 
 const copy = {
   zh: {
@@ -32,7 +34,7 @@ const copy = {
     start: '开始制琴', collection: '我的琴架', wall: '公共琴墙', odds: '部件等级', oddsLine: '工坊 68% · 精选 27% · 典藏 5%',
     stages: { body: '琴体', neck: '琴颈', pickups: '拾音器', bridge: '琴桥', finish: '饰面' },
     sealed: '打开下一个包裹', sealedNote: '里面只会出现这一次的候选。', open: '拆开包裹',
-    choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个',
+    choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个', audition: '试听当前组合', zoomIn: '放大', zoomOut: '缩小', resetZoom: '复位视图', toneLab: '音色测试', clean: '清音', driveChannel: '驱动',
     chooseTitle: { body: '先选它的轮廓', neck: '握住它的性格', pickups: '让它开始有声音', bridge: '决定琴弦落在哪里', finish: '最后，让木头显色' },
     chooseDetail: { body: '轻点候选，琴体会在模具上显影。', neck: '镜头已移到琴颈，直接试装。', pickups: '不同线圈，会留下不同的攻击感。', bridge: '琴桥改变触弦、延音与回弹。', finish: '漆面会在确认前完整显影。' },
     workshop: '工坊级', select: '精选级', archive: '典藏级',
@@ -46,7 +48,7 @@ const copy = {
     start: 'Start building', collection: 'My rack', wall: 'Public wall', odds: 'Part grades', oddsLine: 'Workshop 68% · Select 27% · Archive 5%',
     stages: { body: 'Body', neck: 'Neck', pickups: 'Pickups', bridge: 'Bridge', finish: 'Finish' },
     sealed: 'Open the next parcel', sealedNote: 'Only this run’s candidates are inside.', open: 'Unwrap parcel',
-    choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one',
+    choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one', audition: 'Hear this build', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetZoom: 'Reset view', toneLab: 'Tone test', clean: 'Clean', driveChannel: 'Drive',
     chooseTitle: { body: 'Choose its silhouette', neck: 'Shape the hand feel', pickups: 'Give it a voice', bridge: 'Set the strings in place', finish: 'Let the wood show' },
     chooseDetail: { body: 'Tap a candidate to reveal it on the form.', neck: 'The camera is on the neck. Trial-fit it here.', pickups: 'Each coil changes the attack.', bridge: 'The bridge changes touch, sustain and return.', finish: 'See the full finish before you keep it.' },
     workshop: 'Workshop', select: 'Select', archive: 'Archive',
@@ -73,13 +75,11 @@ const partNames: Record<string, { zh:string; en:string }> = {
 function gradeLabel(grade: BuildGrade) { return copy[locale][grade] }
 function partLabel(part: string) { return partNames[part]?.[locale] ?? part }
 
-function sourceGuitar(platform: BuildPlatform, config: BuildConfig): GuitarSpec {
-  const body = config.body
-  const id = platform === 'bolt-on'
-    ? body === 'contour' ? 'contour-sss' : body === 'offset' ? 'offset-current' : 'workshop-slab'
-    : body === 'centerblock' ? 'centerblock-semi' : body === 'thin-horn' ? 'thin-double-horn' : 'carved-crown'
-  return GUITARS.find((guitar) => guitar.id === id) ?? GUITARS[0]
+function InspectIcon({kind}:{kind:'play'|'stop'|'in'|'out'|'reset'|'tone'|'close'}) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">{kind==='close'?<path d="m7 7 10 10M17 7 7 17" fill="none"/>:kind==='tone'?<><path d="M5 16V9M9 19V5M13 15V8M17 18V6M21 14v-4" fill="none"/></>:kind==='play'?<path d="M8 5.5v13l10-6.5z"/>:kind==='stop'?<rect x="7" y="7" width="10" height="10" rx="1"/>:kind==='in'||kind==='out'?<><circle cx="10.5" cy="10.5" r="5.5" fill="none"/><path d="M14.7 14.7 20 20M7.5 10.5h6" fill="none"/>{kind==='in'&&<path d="M10.5 7.5v6" fill="none"/>}</>:<><path d="M5 9a7.5 7.5 0 1 1 1.4 7.7" fill="none"/><path d="M5 4v5h5" fill="none"/></>}</svg>
 }
+
+const toneLabels:Record<ToneMetric,{zh:string;en:string}>={warmth:{zh:'温暖',en:'Warm'},brightness:{zh:'明亮',en:'Bright'},attack:{zh:'起音',en:'Attack'},sustain:{zh:'延音',en:'Sustain'},drive:{zh:'驱动',en:'Drive'},space:{zh:'空间',en:'Space'}}
 
 export function BuildRun() {
   const c = copy[locale]
@@ -87,6 +87,7 @@ export function BuildRun() {
   const wall = useGuitarWall()
   const engineRef = useRef<ToneEngine | null>(null)
   const sequenceTimerRef = useRef<number | null>(null)
+  const auditionTimerRef = useRef<number | null>(null)
   const [screen, setScreen] = useState<RunScreen>('start')
   const [runId, setRunId] = useState('')
   const [platform, setPlatform] = useState<BuildPlatform>('bolt-on')
@@ -100,23 +101,29 @@ export function BuildRun() {
   const [riff, setRiff] = useState<RiffPattern>(() => emptyRiff())
   const [playhead, setPlayhead] = useState(-1)
   const [measure, setMeasure] = useState(0)
+  const [manualZoom, setManualZoom] = useState(1)
+  const [auditioning, setAuditioning] = useState(false)
+  const [detailEntry, setDetailEntry] = useState<WallEntry | null>(null)
+  const [tonePanelOpen, setTonePanelOpen] = useState(false)
+  const [channel, setChannel] = useState<AmpChannel>('clean')
 
   const stage = BUILD_STAGES[stageIndex]
   const progress = screen === 'complete' || screen === 'riff' ? 5 : stageIndex
   const previewConfig = useMemo(() => selectedOffer ? applyOffer(config, stage, selectedOffer) : config, [config, selectedOffer, stage])
-  const selectedSource = useMemo(() => sourceGuitar(platform, previewConfig), [platform, previewConfig])
+  const selectedSource = useMemo(() => guitarFromBuild(platform, previewConfig), [platform, previewConfig])
 
   useEffect(() => {
     engineRef.current = new ToneEngine()
     return () => {
       if (sequenceTimerRef.current !== null) window.clearInterval(sequenceTimerRef.current)
+      if (auditionTimerRef.current !== null) window.clearTimeout(auditionTimerRef.current)
       engineRef.current?.dispose()
     }
   }, [])
 
   const beginRun = () => {
     const seed = createRunSeed()
-    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); setRiff(emptyRiff()); setMeasure(0); setScreen('sealed')
+    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); setRiff(emptyRiff()); setMeasure(0); setManualZoom(1); setScreen('sealed')
   }
 
   const openCase = () => {
@@ -140,6 +147,14 @@ export function BuildRun() {
   const playReference = async () => {
     await engineRef.current?.enable()
     engineRef.current?.playReference(selectedSource, 'clean')
+  }
+
+  const auditionBuild = async () => {
+    if (auditioning) { engineRef.current?.stopAll(); if (auditionTimerRef.current!==null) window.clearTimeout(auditionTimerRef.current); auditionTimerRef.current=null; setAuditioning(false); return }
+    setAuditioning(true)
+    let duration=0
+    try { await engineRef.current?.enable(); duration=engineRef.current?.playComparison(selectedSource,channel) ?? 0 } catch { setAuditioning(false); return }
+    auditionTimerRef.current=window.setTimeout(()=>{setAuditioning(false);auditionTimerRef.current=null},duration*1000+80)
   }
 
   const toggleRiffPlayback = async () => {
@@ -177,11 +192,13 @@ export function BuildRun() {
   }
 
   if (screen === 'start') return <section className="tfrun tfrun--start">
-    <div className="tfrun-start__mark" aria-hidden="true"><span>TF</span><i /></div>
-    <p className="tfrun-kicker">TONE FOUNDRY</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
-    <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}</button>
-    <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
-    <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
+    <div className="tfrun-start__ticket">
+      <div className="tfrun-start__mark" aria-hidden="true"><span>TF</span><i /></div>
+      <p className="tfrun-kicker">TONE FOUNDRY · WORK ORDER</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
+      <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}</button>
+      <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
+      <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
+    </div>
   </section>
 
   if (screen === 'collection') return <section className="tfrun tfrun--collection">
@@ -189,7 +206,9 @@ export function BuildRun() {
     {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);setRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
   </section>
 
-  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setScreen('complete') }} />
+  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
+
+  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onBack={()=>{engineRef.current?.stopAll();if(sequenceTimerRef.current!==null)window.clearInterval(sequenceTimerRef.current);sequenceTimerRef.current=null;setPlayhead(-1);setScreen('wall')}} />
 
   if (screen === 'riff') return <section className="tfrun tfrun--riff">
     <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('complete')}>{c.back}</button><div><h2>{c.riffTitle}</h2></div></header>
@@ -208,11 +227,12 @@ export function BuildRun() {
 
   return <section className={`tfrun tfrun--build tfrun--${screen}`}>
     <div className="tfrun-progress" aria-label={`${progress + 1} / 5`}>{BUILD_STAGES.map((item,index)=><i key={item} className={index < progress ? 'is-done' : index === stageIndex ? 'is-current' : ''} />)}</div>
-    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose'} trialing={Boolean(selectedOffer)} />{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
+    <div className="tfrun-build__preview"><div className="tfrun-build__halo" aria-hidden="true" /><div className="tfrun-build__camera" style={{'--tf-manual-zoom':manualZoom} as CSSProperties}><AssemblyGuitarPreview platform={platform} config={previewConfig} stage={stage} stageIndex={stageIndex} focusing={screen === 'choose'} trialing={Boolean(selectedOffer)} /></div><div className="tfrun-preview-tools" aria-label={locale==='zh'?'乐器检视工具':'Instrument inspection tools'}><button type="button" className={tonePanelOpen?'is-active':''} onClick={()=>setTonePanelOpen(value=>!value)} aria-label={c.toneLab} aria-pressed={tonePanelOpen}><InspectIcon kind="tone"/></button><button type="button" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer} aria-label={c.audition}><InspectIcon kind={auditioning?'stop':'play'}/></button><button type="button" onClick={()=>setManualZoom((value)=>Math.max(.8,+(value-.15).toFixed(2)))} disabled={manualZoom<=.8} aria-label={c.zoomOut}><InspectIcon kind="out"/></button><button className="tfrun-preview-tools__scale" type="button" onClick={()=>setManualZoom(1)} aria-label={c.resetZoom}>{Math.round(manualZoom*100)}</button><button type="button" onClick={()=>setManualZoom((value)=>Math.min(1.45,+(value+.15).toFixed(2)))} disabled={manualZoom>=1.45} aria-label={c.zoomIn}><InspectIcon kind="in"/></button></div>{tonePanelOpen&&<aside className="tfrun-tone-test"><header><span>{c.toneLab}</span><button type="button" onClick={()=>setTonePanelOpen(false)} aria-label={locale==='zh'?'关闭音色测试':'Close tone test'}><InspectIcon kind="close"/></button></header><div className="tfrun-tone-test__channel"><button type="button" className={channel==='clean'?'is-active':''} onClick={()=>setChannel('clean')}>{c.clean}</button><button type="button" className={channel==='drive'?'is-active':''} onClick={()=>setChannel('drive')}>{c.driveChannel}</button></div><div className="tfrun-tone-test__meters">{(Object.keys(toneLabels) as ToneMetric[]).map(metric=><p key={metric}><span>{toneLabels[metric][locale]}</span><i><em style={{width:`${selectedSource.tone[metric]}%`}}/></i><b>{selectedSource.tone[metric]}</b></p>)}</div><button className="tfrun-tone-test__play" type="button" onClick={()=>void auditionBuild()} disabled={stageIndex===0&&!selectedOffer}><InspectIcon kind={auditioning?'stop':'play'}/><span>{c.audition}</span></button></aside>}{selectedOffer && <div className="tfrun-trial"><span>{partLabel(selectedOffer.part)}</span><b>{gradeLabel(selectedOffer.grade)}</b></div>}</div>
     <div className="tfrun-build__panel">
+      <div className="tfrun-build__folio" aria-hidden="true"><span>WORK ORDER</span><b>{String(stageIndex+1).padStart(2,'0')} / 05</b></div>
       <div className="tfrun-build__prompt"><h2>{screen === 'sealed' ? c.sealed : c.chooseTitle[stage]}</h2><p>{screen === 'sealed' ? c.sealedNote : c.chooseDetail[stage]}</p></div>
       {screen === 'sealed' ? <button className="tfrun-case" type="button" onClick={openCase}><span aria-hidden="true">TONE FOUNDRY</span><b>{c.open}</b><i aria-hidden="true" /></button> : <>
-        <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>setSelectedOffer(offer)} aria-pressed={selectedOffer?.id===offer.id}><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
+        <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
         <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>
       </>}
     </div>
