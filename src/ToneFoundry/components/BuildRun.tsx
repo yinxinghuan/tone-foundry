@@ -98,7 +98,8 @@ export function BuildRun() {
   const [grades, setGrades] = useState<Partial<Record<BuildStage, BuildGrade>>>({})
   const [completed, setCompleted] = useState<CompletedBuild | null>(null)
   const [saved, setSaved] = useState(false)
-  const [riff, setRiff] = useState<RiffPattern>(() => emptyRiff())
+  const [riff, setRiffState] = useState<RiffPattern>(() => emptyRiff())
+  const riffRef = useRef(riff)
   const [playhead, setPlayhead] = useState(-1)
   const [measure, setMeasure] = useState(0)
   const [manualZoom, setManualZoom] = useState(1)
@@ -115,15 +116,21 @@ export function BuildRun() {
   useEffect(() => {
     engineRef.current = new ToneEngine()
     return () => {
-      if (sequenceTimerRef.current !== null) window.clearInterval(sequenceTimerRef.current)
+      if (sequenceTimerRef.current !== null) window.clearTimeout(sequenceTimerRef.current)
       if (auditionTimerRef.current !== null) window.clearTimeout(auditionTimerRef.current)
       engineRef.current?.dispose()
     }
   }, [])
 
+  const updateRiff = (update: RiffPattern | ((current: RiffPattern) => RiffPattern)) => {
+    const next = typeof update === 'function' ? update(riffRef.current) : update
+    riffRef.current = next
+    setRiffState(next)
+  }
+
   const beginRun = () => {
     const seed = createRunSeed()
-    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); setRiff(emptyRiff()); setMeasure(0); setManualZoom(1); setScreen('sealed')
+    setRunId(seed.id); setPlatform(seed.platform); setConfig(seed.config); setStageIndex(0); setOffers([]); setSelectedOffer(null); setGrades({}); setCompleted(null); setSaved(false); updateRiff(emptyRiff()); setMeasure(0); setManualZoom(1); setScreen('sealed')
   }
 
   const openCase = () => {
@@ -159,16 +166,21 @@ export function BuildRun() {
 
   const toggleRiffPlayback = async () => {
     if (sequenceTimerRef.current !== null) {
-      window.clearInterval(sequenceTimerRef.current); sequenceTimerRef.current = null; setPlayhead(-1); engineRef.current?.stopAll(); return
+      window.clearTimeout(sequenceTimerRef.current); sequenceTimerRef.current = null; setPlayhead(-1); engineRef.current?.stopAll(); return
     }
     await engineRef.current?.enable()
     let step = 0
-    setPlayhead(step)
-    riff.steps.forEach((track, stringIndex) => { if (track[step]) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, track[step] === 2 ? 1 : track[step] === 3 ? .38 : .72) })
-    sequenceTimerRef.current = window.setInterval(() => {
-      step = (step + 1) % 16; setPlayhead(step)
-      riff.steps.forEach((track, stringIndex) => { if (track[step]) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, track[step] === 2 ? 1 : track[step] === 3 ? .38 : .72) })
-    }, 60000 / riff.bpm / 4)
+    const playStep = () => {
+      const currentRiff = riffRef.current
+      setPlayhead(step)
+      currentRiff.steps.forEach((track, stringIndex) => {
+        const cell = track[step]
+        if (cell) engineRef.current?.pluck(selectedSource, stringIndex, 'clean', 0, cell === 2 ? 1 : cell === 3 ? .38 : .72)
+      })
+      step = (step + 1) % 16
+      sequenceTimerRef.current = window.setTimeout(playStep, 60000 / currentRiff.bpm / 4)
+    }
+    playStep()
   }
 
   const saveToRack = () => {
@@ -180,7 +192,7 @@ export function BuildRun() {
     const next = emptyRiff()
     const pattern: Array<[number, number, RiffCell]> = [[0,0,2],[0,4,1],[0,8,2],[0,12,1],[1,2,1],[1,6,1],[1,10,1],[1,14,1],[2,3,3],[2,7,3],[2,11,3],[2,15,3],[4,6,1],[5,14,2]]
     for (const [stringIndex, step, value] of pattern) next.steps[stringIndex][step] = value
-    setRiff(next)
+    updateRiff(next)
   }
 
   const publishCurrent = () => {
@@ -203,19 +215,19 @@ export function BuildRun() {
 
   if (screen === 'collection') return <section className="tfrun tfrun--collection">
     <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('start')}>{c.backStart}</button><div><h2>{c.collection}</h2></div><button type="button" onClick={() => setScreen('wall')}>{c.wall}</button></header>
-    {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);setRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
+    {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);updateRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
   </section>
 
-  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
+  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); updateRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
 
-  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onBack={()=>{engineRef.current?.stopAll();if(sequenceTimerRef.current!==null)window.clearInterval(sequenceTimerRef.current);sequenceTimerRef.current=null;setPlayhead(-1);setScreen('wall')}} />
+  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onBack={()=>{engineRef.current?.stopAll();if(sequenceTimerRef.current!==null)window.clearTimeout(sequenceTimerRef.current);sequenceTimerRef.current=null;setPlayhead(-1);setScreen('wall')}} />
 
   if (screen === 'riff') return <section className="tfrun tfrun--riff">
     <header className="tfrun-pagehead"><button type="button" onClick={() => setScreen('complete')}>{c.back}</button><div><h2>{c.riffTitle}</h2></div></header>
     <p className="tfrun-riff__note">{c.riffNote}</p>
-    <div className="tfrun-riff__tools"><button type="button" onClick={() => setRiff((current) => ({ ...current, bpm: current.bpm === 90 ? 120 : current.bpm === 120 ? 150 : 90 }))}>{riff.bpm} BPM</button><button type="button" onClick={loadDemoRiff}>{c.preset}</button></div>
+    <div className="tfrun-riff__tools"><button type="button" onClick={() => updateRiff((current) => ({ ...current, bpm: current.bpm === 90 ? 120 : current.bpm === 120 ? 150 : 90 }))}>{riff.bpm} BPM</button><button type="button" onClick={loadDemoRiff}>{c.preset}</button></div>
     <nav className="tfrun-measures" aria-label={locale === 'zh' ? '选择小节' : 'Choose measure'}>{['I','II','III','IV'].map((label,index)=><button type="button" key={label} className={measure===index?'is-current':''} aria-pressed={measure===index} onClick={()=>setMeasure(index)}>{c.measure} {label}</button>)}</nav>
-    <div className="tfrun-sequencer" role="grid" aria-label={c.riffTitle}>{riff.steps.map((track,stringIndex)=><div role="row" key={stringIndex}><b>{['E2','A2','D3','G3','B3','E4'][stringIndex]}</b>{track.slice(measure*4,measure*4+4).map((cell,localStep)=>{const step=measure*4+localStep;return <button type="button" role="gridcell" aria-pressed={cell>0} className={`${cell?'is-active':''} ${cell===2?'is-accent':''} ${cell===3?'is-muted':''} ${playhead===step?'is-playing':''}`} key={step} onClick={()=>setRiff((current)=>({...current,steps:current.steps.map((row,rowIndex)=>rowIndex===stringIndex?row.map((value,cellIndex)=>cellIndex===step?((value+1)%4) as RiffCell:value):row)}))}><span>{step+1}</span></button>})}</div>)}</div>
+    <div className="tfrun-sequencer" role="grid" aria-label={c.riffTitle}>{riff.steps.map((track,stringIndex)=><div role="row" key={stringIndex}><b>{['E2','A2','D3','G3','B3','E4'][stringIndex]}</b>{track.slice(measure*4,measure*4+4).map((cell,localStep)=>{const step=measure*4+localStep;return <button type="button" role="gridcell" aria-pressed={cell>0} className={`${cell?'is-active':''} ${cell===2?'is-accent':''} ${cell===3?'is-muted':''} ${playhead===step?'is-playing':''}`} key={step} onClick={()=>updateRiff((current)=>({...current,steps:current.steps.map((row,rowIndex)=>rowIndex===stringIndex?row.map((value,cellIndex)=>cellIndex===step?((value+1)%4) as RiffCell:value):row)}))}><span>{step+1}</span></button>})}</div>)}</div>
     <div className="tfrun-riff__actions"><button className="tfrun-primary" type="button" onClick={() => void toggleRiffPlayback()}>{playhead >= 0 ? c.stop : c.play}</button><button className="tfrun-primary" type="button" onClick={publishCurrent}>{c.publish}</button></div>
   </section>
 
