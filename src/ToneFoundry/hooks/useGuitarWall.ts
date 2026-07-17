@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { callAigramAPI, isInAigram, type AigramResponse } from '@shared/runtime'
+import { callAigramAPI, isInAigram, telegramId, type AigramResponse } from '@shared/runtime'
 import { getGameUuid } from '@shared/runtime/game-id'
 import type { ToneFoundrySave, WallEntry } from '../gameplay/save'
 
@@ -29,10 +29,14 @@ export function useGuitarWall() {
         )
         const rows = Array.isArray(response?.data) ? response.data : []
         const pairs: Array<{ userId: string; guitar: ToneFoundrySave['published'][number] }> = []
+        const remoteLikes = new Map<string, number>()
         for (const row of rows) {
           if (!row.user_id || !row.resource_data) continue
           try {
             const save = JSON.parse(row.resource_data) as ToneFoundrySave
+            if (row.user_id !== String(telegramId ?? '')) {
+              for (const guitarId of new Set(save.likedGuitarIds ?? [])) remoteLikes.set(guitarId, (remoteLikes.get(guitarId) ?? 0) + 1)
+            }
             // Flatten the complete archive for every visible author. Taking
             // published[0] here would silently erase each author's history.
             for (const guitar of save.published || []) {
@@ -57,7 +61,7 @@ export function useGuitarWall() {
         const profileMap = new Map(profiles)
         if (!cancelled) setEntries(limited.map(({ userId, guitar }) => {
           const profile = profileMap.get(userId)
-          return { userId, userName: profile?.name, userAvatarUrl: profile?.head_url, guitar }
+          return { userId, userName: profile?.name, userAvatarUrl: profile?.head_url, guitar, likeCount: remoteLikes.get(guitar.id) ?? 0 }
         }))
       } catch {
         if (!cancelled) setEntries([])

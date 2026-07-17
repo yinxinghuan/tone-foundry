@@ -26,6 +26,7 @@ export interface PublishedGuitar extends CompletedBuild {
 export interface ToneFoundrySave {
   collection: CompletedBuild[]
   published: PublishedGuitar[]
+  likedGuitarIds: string[]
   _lastActive?: number
 }
 
@@ -34,9 +35,10 @@ export interface WallEntry {
   userName?: string
   userAvatarUrl?: string
   guitar: PublishedGuitar
+  likeCount?: number
 }
 
-export const EMPTY_SAVE: ToneFoundrySave = { collection: [], published: [] }
+export const EMPTY_SAVE: ToneFoundrySave = { collection: [], published: [], likedGuitarIds: [] }
 
 export function emptyRiff(stepCount = 16): RiffPattern {
   return {

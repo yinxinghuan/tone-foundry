@@ -38,7 +38,7 @@ const copy = {
     title: '把声音做成一件物品', intro: '五次选择，做出一把只属于你的琴。',
     start: '开始一份新标本', collection: '我的琴架', wall: '公共琴墙', odds: '部件等级', oddsLine: '工坊 68% · 精选 27% · 典藏 5%',
     stages: { body: '琴体', neck: '琴颈', pickups: '拾音器', bridge: '琴桥', finish: '饰面' },
-    sealed: '打开下一个包裹', sealedNote: '里面只会出现这一次的候选。', open: '拆开包裹',
+    sealed: '打开下一个包裹', sealedNote: '这一包会随机揭示 2–3 件候选；本局只能从中选 1 件。下一份工单会抽到不同组合。', open: '拆开包裹', drawLabel: '本局随机抽取', drawNote: '下一局会有不同候选',
     choose: '哪一个更像你的琴？', chooseNote: '轻点候选，直接在琴上试装。', mount: '就选这个', audition: '试听当前组合', zoomIn: '放大', zoomOut: '缩小', resetZoom: '复位视图', toneLab: '音色测试',
     chooseTitle: { body: '先选它的轮廓', neck: '握住它的性格', pickups: '让它开始有声音', bridge: '决定琴弦落在哪里', finish: '最后，让木头显色' },
     chooseDetail: { body: '轻点候选，琴体会在模具上显影。', neck: '镜头已移到琴颈，直接试装。', pickups: '不同线圈，会留下不同的攻击感。', bridge: '琴桥改变触弦、延音与回弹。', finish: '漆面会在确认前完整显影。' },
@@ -53,7 +53,7 @@ const copy = {
     title: 'Make sound into an object', intro: 'Five sealed choices. One instrument with a voice of its own.',
     start: 'Begin a new specimen', collection: 'My instruments', wall: 'Public index', odds: 'Edition grades', oddsLine: 'Workshop 68% · Select 27% · Archive 5%',
     stages: { body: 'Body', neck: 'Neck', pickups: 'Pickups', bridge: 'Bridge', finish: 'Finish' },
-    sealed: 'Open the next specimen pack', sealedNote: 'This run contains a limited set of parts.', open: 'Reveal candidates',
+    sealed: 'Open the next specimen pack', sealedNote: 'This pack randomly reveals 2–3 candidates. Keep one this run; a new order draws a different set.', open: 'Reveal candidates', drawLabel: 'This run’s random draw', drawNote: 'A new order reveals a different set',
     choose: 'Which one feels like yours?', chooseNote: 'Tap a candidate to trial-fit it on the guitar.', mount: 'Keep this one', audition: 'Hear this build', zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetZoom: 'Reset view', toneLab: 'Tone test',
     chooseTitle: { body: 'Choose its silhouette', neck: 'Shape the hand feel', pickups: 'Give it a voice', bridge: 'Set the strings in place', finish: 'Let the wood show' },
     chooseDetail: { body: 'Tap a candidate to reveal it on the form.', neck: 'The camera is on the neck. Trial-fit it here.', pickups: 'Each coil changes the attack.', bridge: 'The bridge changes touch, sustain and return.', finish: 'See the full finish before you keep it.' },
@@ -294,9 +294,9 @@ export function BuildRun() {
     {save.collection.length === 0 ? <p className="tfrun-empty">{c.empty}</p> : <div className="tfrun-rack">{save.collection.map((guitar) => <article key={guitar.id}><div><GuitarPreview platform={guitar.platform} config={guitar.config} /></div><span>{guitar.id}</span><h3>{partLabel(guitar.config.body)}</h3><p>{c.gradeScore} · {guitar.rarityScore}</p><button type="button" onClick={() => {setCompleted(guitar);setPlatform(guitar.platform);setConfig(guitar.config);setGrades(guitar.grades);setRemixSource(null);setEffects([]);updateRiff(emptyRiff());setSaved(true);setScreen('complete')}}>{c.view}</button></article>)}</div>}
   </section>
 
-  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} loaded={wall.loaded} onBack={() => setScreen('collection')} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setEffects(guitar.effects ?? []); updateRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
+  if (screen === 'wall') return <PublicWall community={wall.entries} mine={save.published} likedGuitarIds={save.likedGuitarIds} loaded={wall.loaded} onBack={() => setScreen('collection')} onToggleLike={(entry)=>save.toggleLike(entry.guitar.id)} onRemix={remixEntry} onView={(guitar,entry) => { setCompleted(guitar); setPlatform(guitar.platform); setConfig(guitar.config); setGrades(guitar.grades); setEffects(guitar.effects ?? []); updateRiff(guitar.riff); setSaved(save.collection.some((item) => item.id === guitar.id)); setDetailEntry(entry); setScreen('detail') }} />
 
-  if (screen === 'detail' && detailEntry) return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} onPlay={()=>void toggleRiffPlayback()} onRemix={detailEntry.userId==='self'||(!!telegramId&&detailEntry.userId===String(telegramId))?undefined:()=>remixEntry(detailEntry)} onBack={()=>{stopRiffPlayback();setScreen('wall')}} />
+  if (screen === 'detail' && detailEntry) { const self=detailEntry.userId==='self'||(!!telegramId&&detailEntry.userId===String(telegramId)); const liked=save.likedGuitarIds.includes(detailEntry.guitar.id); const likeCount=(detailEntry.likeCount??0)+(liked?1:0); return <GuitarWallDetail entry={detailEntry} guitar={guitarFromBuild(detailEntry.guitar.platform,detailEntry.guitar.config)} parts={BUILD_STAGES.map(item=>({label:c.stages[item],value:partLabel(detailEntry.guitar.config[item])}))} playing={playhead>=0} liked={liked} likeCount={likeCount} onPlay={()=>void toggleRiffPlayback()} onToggleLike={self?undefined:()=>save.toggleLike(detailEntry.guitar.id)} onRemix={self?undefined:()=>remixEntry(detailEntry)} onBack={()=>{stopRiffPlayback();setScreen('wall')}} /> }
 
   if (screen === 'tone' && completed) return <section className="tfrun tfrun--tone">
     <header className="tfrun-pagehead"><button type="button" onClick={()=>setScreen('complete')}>{locale==='zh'?'稍后再调':'Not now'}</button><div><h2>{locale==='zh'?'调音步骤':'Tone fitting'}</h2></div></header>
@@ -339,7 +339,7 @@ export function BuildRun() {
         </span>
         <i className="tfrun-case__seal" aria-hidden="true" />
       </button> : <>
-        <div className="tfrun-offers">{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
+        <div className="tfrun-offers"><p className="tfrun-offers__draw"><b>{c.drawLabel} · {offers.length} {locale==='zh'?'件':'ITEMS'}</b><span>{c.drawNote}</span></p>{offers.map((offer)=><button type="button" key={offer.id} className={`tfrun-offer tfrun-offer--${offer.grade} ${selectedOffer?.id===offer.id?'is-selected':''}`} onClick={()=>{engineRef.current?.stopAll();if(auditionTimerRef.current!==null)window.clearTimeout(auditionTimerRef.current);auditionTimerRef.current=null;setAuditioning(false);setSelectedOffer(offer)}} aria-pressed={selectedOffer?.id===offer.id}><span className="tfrun-offer__serial">{offer.serial}</span><b>{partLabel(offer.part)}</b><small>{gradeLabel(offer.grade)}</small><i aria-hidden="true" /></button>)}</div>
         <button className="tfrun-primary" type="button" onClick={mountPart} disabled={!selectedOffer}>{c.mount}</button>
       </>}
     </div>

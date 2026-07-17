@@ -11,7 +11,15 @@ export function useFoundrySave() {
 
   useEffect(() => {
     if (mirror === undefined && savedData !== undefined) {
-      setMirror(savedData ?? EMPTY_SAVE)
+      // Older published saves predate likes. Normalize once at the boundary so
+      // every later read-modify-write preserves the new field.
+      setMirror({
+        ...EMPTY_SAVE,
+        ...(savedData ?? EMPTY_SAVE),
+        collection: savedData?.collection ?? [],
+        published: savedData?.published ?? [],
+        likedGuitarIds: savedData?.likedGuitarIds ?? [],
+      })
     }
   }, [mirror, savedData])
 
@@ -37,11 +45,19 @@ export function useFoundrySave() {
     })
   }
 
+  const toggleLike = (guitarId: string) => {
+    if (!mirror) return
+    const liked = mirror.likedGuitarIds ?? []
+    commit({ ...mirror, likedGuitarIds: liked.includes(guitarId) ? liked.filter((id) => id !== guitarId) : [...liked, guitarId] })
+  }
+
   return {
     ready: loaded && mirror !== undefined,
     collection: mirror?.collection ?? [],
     published: mirror?.published ?? [],
+    likedGuitarIds: mirror?.likedGuitarIds ?? [],
     saveBuild,
     publish,
+    toggleLike,
   }
 }

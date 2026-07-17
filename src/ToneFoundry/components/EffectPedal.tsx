@@ -23,9 +23,12 @@ function Echo({active}:{active:boolean}) { return <svg viewBox="0 0 140 190" ari
 
 export function EffectPedal({effect,active,onToggle}:Props) {
   const item=EFFECTS[effect]
-  const art={boost:<Lift active={active}/>,overdrive:<Drive active={active}/>,chorus:<Chorus active={active}/>, 'tape-echo':<Echo active={active}/>}[effect]
   return <button type="button" className={`tfrun-pedal tfrun-pedal--${effect} ${active?'is-active':''}`} onClick={onToggle} aria-pressed={active} aria-label={`${active?(locale==='zh'?'移除':'Remove'):(locale==='zh'?'添加':'Add')} ${item[locale]}`}>
-    {art}
+    <EffectPedalArt effect={effect} active={active}/>
     <span>{item[locale]}</span>
   </button>
+}
+
+export function EffectPedalArt({effect,active=false}:{effect:EffectId;active?:boolean}) {
+  return {boost:<Lift active={active}/>,overdrive:<Drive active={active}/>,chorus:<Chorus active={active}/>, 'tape-echo':<Echo active={active}/>}[effect]
 }
