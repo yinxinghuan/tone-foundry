@@ -3,7 +3,7 @@ import { WorkshopGuitarSvg } from './WorkshopGuitarSvg'
 import { CarvedCrownGuitarSvg } from './CarvedCrownGuitarSvg'
 import { OffsetCurrentGuitarSvg } from './OffsetCurrentGuitarSvg'
 import { AcousticDreadnoughtGuitarSvg } from './AcousticDreadnoughtGuitarSvg'
-import { AcousticFamilyGuitarSvg } from './AcousticFamilyGuitarSvg'
+import { ModularAcousticGuitarSvg } from './ModularAcousticGuitarSvg'
 import {
   CenterblockSemiGuitarSvg,
   ConcertNylonGuitarSvg,
@@ -21,9 +21,9 @@ export function GuitarSvg({ guitar, onPluck }: GuitarSvgProps) {
   if (guitar.id === 'carved-crown') return <CarvedCrownGuitarSvg guitar={guitar} onPluck={onPluck} />
   if (guitar.id === 'offset-current') return <OffsetCurrentGuitarSvg guitar={guitar} onPluck={onPluck} />
   if (guitar.id === 'timber-dreadnought') return <AcousticDreadnoughtGuitarSvg guitar={guitar} onPluck={onPluck} />
-  if (guitar.id === 'grand-concert-koa') return <AcousticFamilyGuitarSvg guitar={guitar} onPluck={onPluck} family="grand-concert" />
-  if (guitar.id === 'grand-auditorium') return <AcousticFamilyGuitarSvg guitar={guitar} onPluck={onPluck} family="grand-auditorium" />
-  if (guitar.id === 'sunburst-jumbo') return <AcousticFamilyGuitarSvg guitar={guitar} onPluck={onPluck} family="super-jumbo" />
+  if (guitar.id === 'grand-concert-koa') return <ModularAcousticGuitarSvg guitarName={guitar.name.en} onPluck={onPluck} config={{ body: 'grand-concert', neck: 'mahogany-open-gear', pickups: 'pure-acoustic', bridge: 'straight-pins', finish: 'koa-gloss' }} />
+  if (guitar.id === 'grand-auditorium') return <ModularAcousticGuitarSvg guitarName={guitar.name.en} onPluck={onPluck} config={{ body: 'grand-auditorium', neck: 'maple-open-gear', pickups: 'undersaddle', bridge: 'belly-pins', finish: 'aged-amber' }} />
+  if (guitar.id === 'sunburst-jumbo') return <ModularAcousticGuitarSvg guitarName={guitar.name.en} onPluck={onPluck} config={{ body: 'super-jumbo', neck: 'mahogany-open-gear', pickups: 'contact-transducer', bridge: 'moustache-pins', finish: 'tobacco-burst' }} />
   if (guitar.id === 'contour-sss') return <ContourSssGuitarSvg guitar={guitar} onPluck={onPluck} />
   if (guitar.id === 'centerblock-semi') return <CenterblockSemiGuitarSvg guitar={guitar} onPluck={onPluck} />
   if (guitar.id === 'thin-double-horn') return <ThinDoubleHornGuitarSvg guitar={guitar} onPluck={onPluck} />

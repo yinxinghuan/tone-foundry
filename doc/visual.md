@@ -51,10 +51,10 @@
 ## 6. Characters, environments, and assets
 
 - 游戏没有角色，吉他是唯一主角。
-- 使用十一把校准母版、十一种可玩电吉他基础琴型、两个模块平台和语义化 SVG 分组；木吉他校准架必须覆盖紧凑 Grand Concert、Grand Auditorium、Dreadnought、Super Jumbo 与十二品尼龙 Concert 五种可辨识结构。
+- 使用十一把校准母版、十一种可玩电吉他基础琴型、三个模块平台和语义化 SVG 分组；木吉他校准架必须覆盖紧凑 Grand Concert、Grand Auditorium、Dreadnought、Super Jumbo 与十二品尼龙 Concert 五种可辨识结构。
 - 未确认模块以冷灰工程轮廓表达，不能显示成一把已经完成的灰色实体琴。
 - 已确认或临时试装模块保持真实材质；吉他细节质量、比例与模块锚点规则沿用校准系统。
-- 两个平台各有 8 种饰面；金属颗粒、透明木纹、烟草外缘与轻度做旧必须是独立表面层，不能让所有饰面退化为换色渐变。扩展琴体的结构卡与渲染检查见 [body-family-art.md](body-family-art.md)。
+- 两个电吉他平台各有 8 种饰面，原声平面板平台有 6 种可见面板饰面；金属颗粒、透明木纹、烟草外缘与轻度做旧必须是独立表面层，不能让所有饰面退化为换色渐变。原声饰面必须同时改变面板中心 / 外缘、纵向或卷纹木纹、包边、护板和高光强度。扩展琴体的结构卡与渲染检查见 [body-family-art.md](body-family-art.md)。
 - 公共墙缩略图必须在 `160 × 160` 仍看出琴体家族与一个结构性部件。
 
 ## 7. UI and icons

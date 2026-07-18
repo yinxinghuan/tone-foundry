@@ -96,7 +96,7 @@ const reviewCopy = {
     verdict: 'Structure verdict',
     verdictBody: 'Body, neck, headstock, hardware, and string paths use independent geometry contracts. Switching instruments never stretches a shared silhouette.',
     assembly: '03 / Modular assembly lab',
-    assemblyNote: 'Choose a construction platform, then swap body, neck, pickups, bridge, and finish without crossing invalid scale or neck-joint interfaces.',
+    assemblyNote: 'Choose an electric or acoustic construction platform, then swap body, neck, voice, bridge, and finish without crossing invalid structural interfaces.',
     details: '04 / 350% detail targets',
     detailsNote: 'These are live SVG crops for reviewing the headstock, fingerboard, and bridge hierarchy.',
     headstock: 'Headstock and tuners',
@@ -112,7 +112,7 @@ const reviewCopy = {
     brightProxy: 'Brightness proxy',
     qa: '06 / Current acceptance boundary',
     qaNote: 'This page only summarizes implemented and verified work.',
-    qaItems: ['Eleven calibration masters cover four solid-body languages, semi-hollow, offset and five acoustic constructions', 'Compact grand concert, grand auditorium and super jumbo expand the audible acoustic body family', 'Two electric platforms lock distinct 25.5 in bolt-on and 24.75 in set-neck construction anchors', 'Each platform exposes 5 live swappable slots, at least 8 culture presets, and 8 drawable finishes', 'The bolt-on platform has 320 and the set-neck platform has 336 compatible combinations', 'Changing the body enforces bridge and pickup compatibility; mismatched parts cannot be selected', 'No horizontal overflow at 360 / 390 / 430 / 1024 px', 'All interaction targets are at least 44×44 px', 'Instrument switch restores the inspector to 100%', 'Production build, tone assertions, and strict UI audit pass'],
+    qaItems: ['Eleven calibration masters cover four solid-body languages, semi-hollow, offset and five acoustic constructions', 'Compact grand concert, grand auditorium and super jumbo expand the audible acoustic body family', 'Three platforms lock distinct 25.5 in bolt-on, 24.75 in set-neck and 25.4 in acoustic flat-top anchors', 'Each platform exposes 5 live swappable slots; the acoustic platform has 6 visibly distinct soundboard finishes', 'The bolt-on platform has 320, set-neck 336, and acoustic 348 compatible combinations', 'Changing the body enforces bridge and pickup compatibility; mismatched parts cannot be selected', 'No horizontal overflow at 360 / 390 / 430 / 1024 px', 'All interaction targets are at least 44×44 px', 'Instrument switch restores the inspector to 100%', 'Production build, tone assertions, and strict UI audit pass'],
     footer: 'LOCAL REVIEW · NOT PUBLISHED',
   },
 } as const
