@@ -276,7 +276,19 @@ export function BuildRun() {
     const seed=createRunSeed()
     const nextConfig={...entry.guitar.config}
     const nextGrades={...entry.guitar.grades}
-    setRunId(seed.id);setPlatform(entry.guitar.platform);setConfig(nextConfig);setGrades(nextGrades);setEffects(entry.guitar.effects ?? []);setCompleted(finishBuild(seed.id,entry.guitar.platform,nextConfig,nextGrades));setSaved(false);setRemixSource({sourceEntryId:entry.guitar.id,sourceGuitarId:entry.guitar.id,sourceAuthor:entry.userName,sourceAuthorId:entry.userId});updateRiff({...entry.guitar.riff,name:`REMIX / ${entry.guitar.riff.name}`,steps:entry.guitar.riff.steps.map(row=>[...row])});setMeasure(0);setScreen('tone')
+    const remixChoices=Object.fromEntries(BUILD_STAGES.map((target) => {
+      const originalPart=nextConfig[target]
+      const original:PartOffer={
+        id:`${seed.id}-remix-${target}-original-${originalPart}`,
+        part:originalPart,
+        grade:nextGrades[target] ?? 'workshop',
+        serial:`OR-${seed.id.slice(-4)}-01`,
+      }
+      const alternatives=drawOffers(target,entry.guitar.platform,nextConfig,`${seed.id}-remix`)
+        .filter((offer)=>offer.part!==originalPart)
+      return [target,[original,...alternatives].slice(0,3)]
+    })) as Partial<Record<BuildStage,PartOffer[]>>
+    setRunId(seed.id);setPlatform(entry.guitar.platform);setConfig(nextConfig);setGrades(nextGrades);setChoiceBank(remixChoices);setEffects(entry.guitar.effects ?? []);setCompleted(finishBuild(seed.id,entry.guitar.platform,nextConfig,nextGrades));setSaved(false);setRemixSource({sourceEntryId:entry.guitar.id,sourceGuitarId:entry.guitar.id,sourceAuthor:entry.userName,sourceAuthorId:entry.userId});updateRiff({...entry.guitar.riff,name:`REMIX / ${entry.guitar.riff.name}`,steps:entry.guitar.riff.steps.map(row=>[...row])});setMeasure(0);setScreen('tone')
   }
 
   if (screen === 'start') return <section className="tfrun tfrun--start">
