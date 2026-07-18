@@ -69,8 +69,8 @@ export class ToneEngine {
 
     const bodyFilter = ctx.createBiquadFilter()
     bodyFilter.type = 'peaking'
-    const acousticBody = guitar.id === 'timber-dreadnought' || guitar.id === 'concert-nylon'
-    bodyFilter.frequency.value = guitar.id === 'timber-dreadnought' ? 108 : guitar.id === 'concert-nylon' ? 100 : 240 + guitar.synthesis.bodyResonance * 520
+    const acousticBody = ['timber-dreadnought', 'grand-concert-koa', 'grand-auditorium', 'sunburst-jumbo', 'concert-nylon'].includes(guitar.id)
+    bodyFilter.frequency.value = guitar.id === 'timber-dreadnought' ? 108 : guitar.id === 'grand-concert-koa' ? 132 : guitar.id === 'grand-auditorium' ? 116 : guitar.id === 'sunburst-jumbo' ? 94 : guitar.id === 'concert-nylon' ? 100 : 240 + guitar.synthesis.bodyResonance * 520
     bodyFilter.Q.value = acousticBody ? 1.05 : 0.7
     bodyFilter.gain.value = -1 + guitar.synthesis.bodyResonance * 5.5
 
@@ -107,7 +107,7 @@ export class ToneEngine {
     const wetDelay = ctx.createDelay(0.45)
     const wet = ctx.createGain()
     dry.gain.value = 1 - guitar.synthesis.room * 0.2
-    wetDelay.delayTime.value = guitar.id === 'offset-current' ? 0.17 : guitar.id === 'timber-dreadnought' ? 0.042 : guitar.id === 'concert-nylon' ? 0.05 : 0.065
+    wetDelay.delayTime.value = guitar.id === 'offset-current' ? 0.17 : guitar.id === 'grand-concert-koa' ? 0.033 : guitar.id === 'grand-auditorium' ? 0.046 : guitar.id === 'sunburst-jumbo' ? 0.059 : guitar.id === 'timber-dreadnought' ? 0.042 : guitar.id === 'concert-nylon' ? 0.05 : 0.065
     wet.gain.value = guitar.synthesis.room * 0.24
     output.connect(dry)
     output.connect(wetDelay)

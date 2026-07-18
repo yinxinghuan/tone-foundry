@@ -62,6 +62,15 @@ export function renderPluckSamples(guitar: GuitarSpec, options: PluckRenderOptio
     const acousticAir = guitar.id === 'timber-dreadnought'
       ? Math.sin((2 * Math.PI * 102 * i) / sampleRate) * 0.038 * Math.exp(-i / (sampleRate * 1.15))
         + Math.sin((2 * Math.PI * 190 * i) / sampleRate) * 0.024 * Math.exp(-i / (sampleRate * 0.72))
+      : guitar.id === 'grand-concert-koa'
+        ? Math.sin((2 * Math.PI * 132 * i) / sampleRate) * 0.026 * Math.exp(-i / (sampleRate * 0.74))
+          + Math.sin((2 * Math.PI * 244 * i) / sampleRate) * 0.018 * Math.exp(-i / (sampleRate * 0.49))
+        : guitar.id === 'grand-auditorium'
+          ? Math.sin((2 * Math.PI * 116 * i) / sampleRate) * 0.034 * Math.exp(-i / (sampleRate * 1.02))
+            + Math.sin((2 * Math.PI * 207 * i) / sampleRate) * 0.022 * Math.exp(-i / (sampleRate * 0.65))
+          : guitar.id === 'sunburst-jumbo'
+            ? Math.sin((2 * Math.PI * 94 * i) / sampleRate) * 0.045 * Math.exp(-i / (sampleRate * 1.3))
+              + Math.sin((2 * Math.PI * 178 * i) / sampleRate) * 0.028 * Math.exp(-i / (sampleRate * 0.82))
       : guitar.id === 'concert-nylon'
         ? Math.sin((2 * Math.PI * 98 * i) / sampleRate) * 0.032 * Math.exp(-i / (sampleRate * 1.05))
           + Math.sin((2 * Math.PI * 218 * i) / sampleRate) * 0.018 * Math.exp(-i / (sampleRate * 0.62))
