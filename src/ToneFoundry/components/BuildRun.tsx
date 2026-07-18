@@ -117,6 +117,13 @@ export function BuildRun() {
   const c = copy[locale]
   const save = useFoundrySave()
   const wall = useGuitarWall()
+  // The start-screen public-wall counter mirrors the same de-duplicated
+  // dataset the wall renders, rather than the player's own published archive.
+  const publicWallCount = useMemo(() => {
+    const ids = new Set(wall.entries.map((entry) => entry.guitar.id))
+    for (const guitar of save.published) ids.add(guitar.id)
+    return ids.size
+  }, [save.published, wall.entries])
   const engineRef = useRef<ToneEngine | null>(null)
   const sequenceTimerRef = useRef<number | null>(null)
   const playbackTokenRef = useRef(0)
@@ -283,7 +290,7 @@ export function BuildRun() {
       <div className="tfrun-start__copy">
         <p className="tfrun-kicker">{locale === 'zh' ? '模块化吉他游戏' : 'A MODULAR GUITAR GAME'}</p><h2>{c.title}</h2><p className="tfrun-lead">{c.intro}</p>
         <button className="tfrun-primary" type="button" onClick={beginRun}>{c.start}<i aria-hidden="true" /></button>
-        <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{save.published.length}</span></button></div>
+        <div className="tfrun-start__links"><button type="button" onClick={() => setScreen('collection')}>{c.collection}<span>{save.collection.length}</span></button><i /><button type="button" onClick={() => setScreen('wall')}>{c.wall}<span>{wall.loaded ? publicWallCount : '…'}</span></button></div>
         <details className="tfrun-odds"><summary>{c.odds}</summary><b>{c.oddsLine}</b></details>
       </div>
     </div>
